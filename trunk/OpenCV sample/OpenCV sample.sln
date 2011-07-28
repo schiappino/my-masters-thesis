@@ -1,0 +1,39 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenCV sample", "OpenCV sample\OpenCV sample.vcxproj", "{50150AF4-0521-4995-A2CA-FAA9DB5DDD3C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenCV sample2", "OpenCV sample2\OpenCV sample2.vcxproj", "{AB8724EE-EEF2-4138-B7C5-8F4CD8CD4508}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Sample 3", "Sample 3\Sample 3.vcxproj", "{7E82562A-A5E3-4AD0-8464-AFD257351F10}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		OpenCV Debug|Win32 = OpenCV Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{50150AF4-0521-4995-A2CA-FAA9DB5DDD3C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{50150AF4-0521-4995-A2CA-FAA9DB5DDD3C}.Debug|Win32.Build.0 = Debug|Win32
+		{50150AF4-0521-4995-A2CA-FAA9DB5DDD3C}.OpenCV Debug|Win32.ActiveCfg = Debug|Win32
+		{50150AF4-0521-4995-A2CA-FAA9DB5DDD3C}.OpenCV Debug|Win32.Build.0 = Debug|Win32
+		{50150AF4-0521-4995-A2CA-FAA9DB5DDD3C}.Release|Win32.ActiveCfg = Debug|Win32
+		{50150AF4-0521-4995-A2CA-FAA9DB5DDD3C}.Release|Win32.Build.0 = Debug|Win32
+		{AB8724EE-EEF2-4138-B7C5-8F4CD8CD4508}.Debug|Win32.ActiveCfg = Debug|Win32
+		{AB8724EE-EEF2-4138-B7C5-8F4CD8CD4508}.Debug|Win32.Build.0 = Debug|Win32
+		{AB8724EE-EEF2-4138-B7C5-8F4CD8CD4508}.OpenCV Debug|Win32.ActiveCfg = OpenCV Debug|Win32
+		{AB8724EE-EEF2-4138-B7C5-8F4CD8CD4508}.OpenCV Debug|Win32.Build.0 = OpenCV Debug|Win32
+		{AB8724EE-EEF2-4138-B7C5-8F4CD8CD4508}.Release|Win32.ActiveCfg = Release|Win32
+		{AB8724EE-EEF2-4138-B7C5-8F4CD8CD4508}.Release|Win32.Build.0 = Release|Win32
+		{7E82562A-A5E3-4AD0-8464-AFD257351F10}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7E82562A-A5E3-4AD0-8464-AFD257351F10}.Debug|Win32.Build.0 = Debug|Win32
+		{7E82562A-A5E3-4AD0-8464-AFD257351F10}.OpenCV Debug|Win32.ActiveCfg = Debug|Win32
+		{7E82562A-A5E3-4AD0-8464-AFD257351F10}.OpenCV Debug|Win32.Build.0 = Debug|Win32
+		{7E82562A-A5E3-4AD0-8464-AFD257351F10}.Release|Win32.ActiveCfg = Debug|Win32
+		{7E82562A-A5E3-4AD0-8464-AFD257351F10}.Release|Win32.Build.0 = Debug|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

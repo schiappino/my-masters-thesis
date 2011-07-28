@@ -1,0 +1,30 @@
+﻿Build started 2011-07-28 14:15:32.
+     1>Project "C:\Users\netholik\documents\visual studio 2010\Projects\OpenCV sample\Sample 3\Sample 3.vcxproj" on node 2 (build target(s)).
+     1>InitializeBuildStatus:
+         Creating "Debug\Sample 3.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         All outputs are up-to-date.
+         c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Debug\Sample 3.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt "Sample 3.cpp"
+         Sample 3.cpp
+     1>c:\users\netholik\documents\visual studio 2010\projects\opencv sample\sample 3\sample 3.cpp(120): warning C4996: '_gcvt': This function or variable may be unsafe. Consider using _gcvt_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdlib.h(729) : see declaration of '_gcvt'
+       ManifestResourceCompile:
+         All outputs are up-to-date.
+       Link:
+         c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\netholik\documents\visual studio 2010\Projects\OpenCV sample\Debug\Sample 3.exe" /INCREMENTAL /NOLOGO cv210d.lib cxcore210d.lib highgui210d.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Debug\Sample 3.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\Users\netholik\documents\visual studio 2010\Projects\OpenCV sample\Debug\Sample 3.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\netholik\documents\visual studio 2010\Projects\OpenCV sample\Debug\Sample 3.lib" /MACHINE:X86 "Debug\Sample 3.exe.embed.manifest.res"
+         "Debug\Sample 3.obj"
+         Debug\stdafx.obj
+       Manifest:
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /out:"Debug\Sample 3.exe.embed.manifest" /manifest "Debug\Sample 3.exe.intermediate.manifest"
+         All outputs are up-to-date.
+       LinkEmbedManifest:
+         All outputs are up-to-date.
+         Sample 3.vcxproj -> C:\Users\netholik\documents\visual studio 2010\Projects\OpenCV sample\Debug\Sample 3.exe
+       FinalizeBuildStatus:
+         Deleting file "Debug\Sample 3.unsuccessfulbuild".
+         Touching "Debug\Sample 3.lastbuildstate".
+     1>Done Building Project "C:\Users\netholik\documents\visual studio 2010\Projects\OpenCV sample\Sample 3\Sample 3.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:03.94

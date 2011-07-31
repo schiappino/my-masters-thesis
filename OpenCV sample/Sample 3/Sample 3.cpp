@@ -8,7 +8,6 @@
 #define PROGRAM_MODE 10
 
 void detect_and_draw( IplImage* img );
-void find_edges( IplImage* img );
 
 
 // ********************************** CASCADE FILES ******************************************
@@ -54,10 +53,10 @@ int			counter		= 0,
 			object_size = 0,
 			scale		= 1,
 
-			trckbr_lo_val		= 0,
-			trckbr_hi_val		= 0,
+			trckbr_lo_val		= 2,
+			trckbr_hi_val		= 100,
 			trckbr_lo_max_val	= 100,
-			trckbr_hi_max_val	= 100;
+			trckbr_hi_max_val	= 900;
 
 double		fps = 0, 
 			sec = 0;
@@ -69,10 +68,23 @@ const char	* wnd_name			= "Final frame",
 			* wnd_name_roi		= "ROI frame",
 			* wnd_name_edges	= "Edges frame",
 
-			* trckbr_name_hi	= "High treshold",
-			* trckbr_name_lo	= "Low treshold";
+			* trckbr_name_hi	= "Hi",
+			* trckbr_name_lo	= "Lo";
 
-
+// *********************** Function definitions ***************
+void SetTrckbrLoVal( int val )
+{
+	trckbr_lo_val = val;
+}
+void SetTrckbrHiVal( int val )
+{
+	trckbr_hi_val = val;
+}
+void find_edges( IplImage* img )
+{
+	cvCanny( img, tmpFrame, (double)trckbr_lo_val, (double)trckbr_hi_val );
+	cvShowImage( wnd_name_edges, tmpFrame );
+}
 
 using namespace cv;
 
@@ -84,8 +96,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	cvNamedWindow( wnd_name_roi,	CV_WINDOW_NORMAL );
 	cvNamedWindow( wnd_name_edges,	CV_WINDOW_NORMAL );
 
-	cvCreateTrackbar( trckbr_name_lo, wnd_name_edges, &trckbr_lo_val, trckbr_lo_max_val, NULL );
-	cvCreateTrackbar( trckbr_name_hi, wnd_name_edges, &trckbr_hi_val, trckbr_hi_max_val, NULL );
+	cvCreateTrackbar( trckbr_name_lo, wnd_name_edges, &trckbr_lo_val, trckbr_lo_max_val, SetTrckbrLoVal );
+	cvCreateTrackbar( trckbr_name_hi, wnd_name_edges, &trckbr_hi_val, trckbr_hi_max_val, SetTrckbrHiVal );
 
 	if( PROGRAM_MODE == 1 )
 	{
@@ -131,9 +143,9 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	CvSize frameSize = cvSize(frame->width, frame->height);
 	CvSize orgFrameSize = frameSize;
-	grayFrame = cvCreateImage ( orgFrameSize, IPL_DEPTH_8U, 1);
-	normFrame = cvCreateImage ( orgFrameSize, IPL_DEPTH_8U, 1);
-	tmpFrame = cvCreateImage ( orgFrameSize, IPL_DEPTH_8U, 1);
+	grayFrame	= cvCreateImage ( orgFrameSize, IPL_DEPTH_8U, 1);
+	normFrame	= cvCreateImage ( orgFrameSize, IPL_DEPTH_8U, 1);
+	tmpFrame	= cvCreateImage ( orgFrameSize, IPL_DEPTH_8U, 1);
 
 
 
@@ -249,6 +261,10 @@ void detect_and_draw( IplImage* img )
 									r->y + 2*(r->height)/3.0,
 									5*(r->width)/6.0,
 									7*(r->height)/6.0));
+		cvSetImageROI(tmpFrame, cvRect(	r->x + (r->width)/6.0,
+									r->y + 2*(r->height)/3.0,
+									5*(r->width)/6.0,
+									7*(r->height)/6.0));
 		cvShowImage( wnd_name_roi, img );
 		mouths = cvHaarDetectObjects(	img, 
 										cascade_mouth, 
@@ -259,11 +275,13 @@ void detect_and_draw( IplImage* img )
 		);
 		if ( mouths->total > 0 )
 		{
-		CvRect *m = (CvRect*)cvGetSeqElem(mouths, 0);
-		cvRectangle(img, 
-					cvPoint(m->x, m->y), 
-					cvPoint(m->x + m->width, m->y + m->height),
-					CV_RGB(0, 0, 0), 1, 8, 0);
+			find_edges(img);
+
+			CvRect *m = (CvRect*)cvGetSeqElem(mouths, 0);
+			cvRectangle(img, 
+						cvPoint(m->x, m->y), 
+						cvPoint(m->x + m->width, m->y + m->height),
+						CV_RGB(0, 0, 0), 1, 8, 0);
 		}
 		cvResetImageROI(img);
 	}
@@ -271,8 +289,4 @@ void detect_and_draw( IplImage* img )
 	mouths	= NULL;
 	eyes	= NULL;
 	faces	= NULL;
-}
-void find_edges( IplImage* img )
-{
-
 }

@@ -8,6 +8,7 @@
 #define PROGRAM_MODE 10
 
 void detect_and_draw( IplImage* img );
+void find_edges( IplImage* img );
 
 
 // ********************************** CASCADE FILES ******************************************
@@ -51,15 +52,25 @@ time_t		end;
 int			counter		= 0,
 			posRes		= 0,
 			object_size = 0,
-			scale		= 1;
+			scale		= 1,
+
+			trckbr_lo_val		= 0,
+			trckbr_hi_val		= 0,
+			trckbr_lo_max_val	= 100,
+			trckbr_hi_max_val	= 100;
 
 double		fps = 0, 
 			sec = 0;
 
 char		text[3];
-const char	*window_name		= "Final frame",
-			*window_name_norma	= "Normalized frame",
-			*window_name_roi	= "ROI frame";
+
+const char	* wnd_name			= "Final frame",
+			* wnd_name_norma	= "Normalized frame",
+			* wnd_name_roi		= "ROI frame",
+			* wnd_name_edges	= "Edges frame",
+
+			* trckbr_name_hi	= "High treshold",
+			* trckbr_name_lo	= "Low treshold";
 
 
 
@@ -68,9 +79,13 @@ using namespace cv;
 //****************** MAIN ENTRY HERE ***************************
 int _tmain(int argc, _TCHAR* argv[])
 {
-	cvNamedWindow( window_name, CV_WINDOW_AUTOSIZE );
-	cvNamedWindow( window_name_norma, CV_WINDOW_AUTOSIZE );
-	cvNamedWindow( window_name_roi, CV_WINDOW_NORMAL );
+	cvNamedWindow( wnd_name,		CV_WINDOW_AUTOSIZE );
+	cvNamedWindow( wnd_name_norma,	CV_WINDOW_AUTOSIZE );
+	cvNamedWindow( wnd_name_roi,	CV_WINDOW_NORMAL );
+	cvNamedWindow( wnd_name_edges,	CV_WINDOW_NORMAL );
+
+	cvCreateTrackbar( trckbr_name_lo, wnd_name_edges, &trckbr_lo_val, trckbr_lo_max_val, NULL );
+	cvCreateTrackbar( trckbr_name_hi, wnd_name_edges, &trckbr_hi_val, trckbr_hi_max_val, NULL );
 
 	if( PROGRAM_MODE == 1 )
 	{
@@ -131,8 +146,8 @@ int _tmain(int argc, _TCHAR* argv[])
 		cvCvtColor( RawFrame, grayFrame, CV_BGR2GRAY);
 		cvEqualizeHist( grayFrame, normFrame );
 
-		cvShowImage( window_name_norma, normFrame );
-		cvShowImage( window_name, grayFrame );
+		cvShowImage( wnd_name_norma, normFrame );
+		cvShowImage( wnd_name, grayFrame );
 		detect_and_draw( normFrame );
 		
 
@@ -147,7 +162,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		_gcvt(object_size, 3, text);
 		cvPutText(normFrame, text, cvPoint(10, 40), &font, cvScalar(255, 255, 255, 0));
 
-		cvShowImage( window_name_norma, normFrame);
+		cvShowImage( wnd_name_norma, normFrame);
 
 
 		char c = cvWaitKey(1);
@@ -234,7 +249,7 @@ void detect_and_draw( IplImage* img )
 									r->y + 2*(r->height)/3.0,
 									5*(r->width)/6.0,
 									7*(r->height)/6.0));
-		cvShowImage( window_name_roi, img );
+		cvShowImage( wnd_name_roi, img );
 		mouths = cvHaarDetectObjects(	img, 
 										cascade_mouth, 
 										storage3,
@@ -256,4 +271,8 @@ void detect_and_draw( IplImage* img )
 	mouths	= NULL;
 	eyes	= NULL;
 	faces	= NULL;
+}
+void find_edges( IplImage* img )
+{
+
 }

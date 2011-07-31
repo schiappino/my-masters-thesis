@@ -70,6 +70,7 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	cvNamedWindow( window_name, CV_WINDOW_AUTOSIZE );
 	cvNamedWindow( window_name_norma, CV_WINDOW_AUTOSIZE );
+	cvNamedWindow( window_name_roi, CV_WINDOW_NORMAL );
 
 	if( PROGRAM_MODE == 1 )
 	{
@@ -196,7 +197,7 @@ void detect_and_draw( IplImage* img )
 		printf("Frame %d\tsize %d\tcoords: %d\t %d\t %d\t %d\n", counter, object_size, point1.x, point1.y, point2.x, point2.y);
 
 		// Draw the rectangle in the input image
-		cvRectangle( img, point1, point2, CV_RGB(0,0,0), 2, 8, 0 );
+		//cvRectangle( img, point1, point2, CV_RGB(0,0,0), 2, 8, 0 );
 
 		// increamet found objects count
 		++posRes;
@@ -233,6 +234,7 @@ void detect_and_draw( IplImage* img )
 									r->y + 2*(r->height)/3.0,
 									5*(r->width)/6.0,
 									7*(r->height)/6.0));
+		cvShowImage( window_name_roi, img );
 		mouths = cvHaarDetectObjects(	img, 
 										cascade_mouth, 
 										storage3,
@@ -248,7 +250,6 @@ void detect_and_draw( IplImage* img )
 					cvPoint(m->x + m->width, m->y + m->height),
 					CV_RGB(0, 0, 0), 1, 8, 0);
 		}
-
 		cvResetImageROI(img);
 	}
 

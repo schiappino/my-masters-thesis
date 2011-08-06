@@ -5,7 +5,7 @@
 #include <highgui.h>
 #include <time.h>
 
-#define PROGRAM_MODE 10
+#define PROGRAM_MODE 1
 
 void detect_and_draw( IplImage* img );
 
@@ -63,8 +63,8 @@ double		fps = 0,
 
 char		text[3];
 
-const char	* wnd_name			= "Final frame",
-			* wnd_name_norma	= "Normalized frame",
+const char	* wnd_name			= "OpenCV",
+			* wnd_name_norma	= "Normalized frame ",
 			* wnd_name_roi		= "ROI frame",
 			* wnd_name_edges	= "Edges frame",
 
@@ -80,6 +80,11 @@ void SetTrckbrHiVal( int val )
 {
 	trckbr_hi_val = val;
 }
+void putTextWithShadow(IplImage *img, const char *str, CvPoint point, CvFont *font, CvScalar color = CV_RGB(255, 255, 255))
+{
+	cvPutText(img, str, cvPoint(point.x-1,point.y-1), font, CV_RGB(0, 0, 0));
+	cvPutText(img, str, point, font, color);
+};
 void find_edges( IplImage* img )
 {
 	cvCanny( img, tmpFrame, (double)trckbr_lo_val, (double)trckbr_hi_val );
@@ -103,8 +108,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	{
 		capture = cvCreateCameraCapture(CV_CAP_ANY);
 		
-		cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_WIDTH,  240);
-		cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT, 180);
+		cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_WIDTH,  320);
+		cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT, 240);
 	}
 	else
 	{
@@ -156,7 +161,8 @@ int _tmain(int argc, _TCHAR* argv[])
 		if( !RawFrame ) break;
 
 		cvCvtColor( RawFrame, grayFrame, CV_BGR2GRAY);
-		cvEqualizeHist( grayFrame, normFrame );
+		//cvEqualizeHist( grayFrame, normFrame );
+		normFrame = (IplImage*)grayFrame;
 
 		cvShowImage( wnd_name_norma, normFrame );
 		cvShowImage( wnd_name, grayFrame );
@@ -168,11 +174,15 @@ int _tmain(int argc, _TCHAR* argv[])
 		++counter;
 		sec = difftime (end, start);     
 		fps = counter / sec;
+
+		std::sprintf( text, "%d x %d", frame->width, frame->height );
+		putTextWithShadow(normFrame, text, cvPoint(5, 15), &font);
+
 		_gcvt(fps, 3, text);
-		cvPutText(normFrame, text, cvPoint(10, 20), &font, cvScalar(255, 255, 255, 0));
+		putTextWithShadow( normFrame, text, cvPoint(5, 35), &font);
 		
 		_gcvt(object_size, 3, text);
-		cvPutText(normFrame, text, cvPoint(10, 40), &font, cvScalar(255, 255, 255, 0));
+		putTextWithShadow(normFrame, text, cvPoint(5, 55), &font);
 
 		cvShowImage( wnd_name_norma, normFrame);
 
@@ -225,6 +235,9 @@ void detect_and_draw( IplImage* img )
 
 		// Draw the rectangle in the input image
 		//cvRectangle( img, point1, point2, CV_RGB(0,0,0), 2, 8, 0 );
+		cvSetImageROI(img, cvRect(r->x, r->y, r->width, 7*(r->height)/6));
+		cvEqualizeHist(img, img);
+		cvResetImageROI(img);
 
 		// increamet found objects count
 		++posRes;
@@ -261,10 +274,10 @@ void detect_and_draw( IplImage* img )
 									r->y + 2*(r->height)/3.0,
 									5*(r->width)/6.0,
 									7*(r->height)/6.0));
-		cvSetImageROI(tmpFrame, cvRect(	r->x + (r->width)/6.0,
+		/*cvSetImageROI(tmpFrame, cvRect(	r->x + (r->width)/6.0,
 									r->y + 2*(r->height)/3.0,
 									5*(r->width)/6.0,
-									7*(r->height)/6.0));
+									7*(r->height)/6.0));*/
 		cvShowImage( wnd_name_roi, img );
 		mouths = cvHaarDetectObjects(	img, 
 										cascade_mouth, 
@@ -275,13 +288,14 @@ void detect_and_draw( IplImage* img )
 		);
 		if ( mouths->total > 0 )
 		{
-			find_edges(img);
-
 			CvRect *m = (CvRect*)cvGetSeqElem(mouths, 0);
 			cvRectangle(img, 
 						cvPoint(m->x, m->y), 
 						cvPoint(m->x + m->width, m->y + m->height),
 						CV_RGB(0, 0, 0), 1, 8, 0);
+			cvSetImageROI( img, cvRect(m->x, m->y, m->width, m->height));
+			tmpFrame->roi = (IplROI*)img->roi;
+			find_edges(img);
 		}
 		cvResetImageROI(img);
 	}

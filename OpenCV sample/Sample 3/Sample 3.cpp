@@ -178,10 +178,10 @@ int _tmain(int argc, _TCHAR* argv[])
 		std::sprintf( text, "%d x %d", frame->width, frame->height );
 		putTextWithShadow(normFrame, text, cvPoint(5, 15), &font);
 
-		_gcvt(fps, 3, text);
+		std::sprintf( text, "%2.1f FPS", fps );
 		putTextWithShadow( normFrame, text, cvPoint(5, 35), &font);
 		
-		_gcvt(object_size, 3, text);
+		std::sprintf( text, "%d", object_size );
 		putTextWithShadow(normFrame, text, cvPoint(5, 55), &font);
 
 		cvShowImage( wnd_name_norma, normFrame);

@@ -232,8 +232,9 @@ void detect_and_draw( IplImage* img )
 	cvClearMemStorage( storage2 );
 	cvClearMemStorage( storage3 );
 
-	// There can be more than one face in an image. So create a growable sequence of faces.
-	// Detect the objects and store them in the sequence
+	// ******************************************************************************* 
+	// **************************** FACE DETECTION ***********************************
+	// ******************************************************************************* 
 	faces = cvHaarDetectObjects( img,
 								cascade_face, 
 								storage,
@@ -264,6 +265,9 @@ void detect_and_draw( IplImage* img )
 		// Clear mem for next detection
 		cvClearMemStorage(storage);
 
+		// ******************************************************************************* 
+		// **************************** EYES DETECTION ***********************************
+		// *******************************************************************************
 		cvSetImageROI(img, cvRect(r->x, r->y + (r->height/5.5), r->width, r->height/3.0));
 		eyes = cvHaarDetectObjects(	img, 
 									cascade_eye, 
@@ -290,7 +294,9 @@ void detect_and_draw( IplImage* img )
 		point1.y = r->y + 4*(r->height)/6.0;	point2.y = r->y + 7*(r->height)/6.0;
 		cvRectangle( img, point1, point2, CV_RGB(255,255,255), 1, 8, 0 );*/
 
-
+		// ******************************************************************************* 
+		// **************************** MOUTH DETECTION **********************************
+		// *******************************************************************************
 		cvSetImageROI(img, cvRect(	r->x + (r->width)/6.0,
 									r->y + 2*(r->height)/3.0,
 									5*(r->width)/6.0,
@@ -313,8 +319,8 @@ void detect_and_draw( IplImage* img )
 			cvSetImageROI( img, cvRect(m->x, m->y, m->width, m->height));
 			tmpFrame->roi = (IplROI*)img->roi;
 			threshFrame->roi = (IplROI*)img->roi;
-			cvThreshold( img, threshFrame, trckbr_thrsh_val, trckbr_thrsh_max_val, CV_THRESH_BINARY );
-			cvShowImage( wnd_name_thresh, threshFrame );
+			//cvThreshold( img, threshFrame, trckbr_thrsh_val, trckbr_thrsh_max_val, CV_THRESH_BINARY );
+			cvShowImage( wnd_name_thresh, img );
 			find_edges(img);
 		}
 		cvResetImageROI(img);

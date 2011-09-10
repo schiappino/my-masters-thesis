@@ -13,7 +13,7 @@ using namespace cv;
 using namespace std;
 
 // ********************************** CASCADE FILES ******************************************
-const char* cascadeFNameEye   = "../data/cascades/haarcascade_eye_alt.xml";
+const char* cascadeFNameEye   = "../data/cascades/haarcascade_eye.xml";
 const char* cascadeFNameFace  = "../data/cascades/haarcascade_frontalface_alt.xml";
 const char* cascadeFNameMouth = "../data/cascades/haarcascade_mcs_mouth.xml";
 
@@ -46,11 +46,6 @@ CvRect
 	* MouthRectROI		= NULL,
 	* EyeRectROI		= NULL;
 
-CvSeq           
-	* facesSeq          = NULL,
-	* eyesSeq           = NULL,
-	* mouthsSeq         = NULL;
-
 Mat        
 	img,
 	imgRaw,
@@ -62,6 +57,7 @@ Mat
 	imgEyes,
 	imgEyebrows,
 	imgMouth,
+	imgProcessed,
 
 	imgRGB,
 	imgRGBRed,
@@ -98,6 +94,10 @@ const char
 	* wndNameFace = "Face";
 
 vector<string> 	imgFileList;
+vector<Rect>	faces,
+				eyes,
+				mouths;
+
 
 void PutTextWithShadow( const char* text, IplImage* img )
 {};
@@ -191,7 +191,7 @@ int Init()
 	//
 	if( PROGRAM_MODE == 1 )
 	{
-		img = imread( imgFileList.at(0) );
+		imgSrc = imread( imgFileList.at(0) );
 	}
 	else if( PROGRAM_MODE == 2 )
 	{
@@ -213,11 +213,43 @@ int ExitNicely(int code)
 	return code;
 };
 
-void DetectFaces()
-{};
+bool DetectFaces()
+{
+	cascadeFace.detectMultiScale( imgGray, 
+		faces, 
+		1.1, 
+		2, 
+		CV_HAAR_FIND_BIGGEST_OBJECT);
+
+	if( faces.size() > 0 )
+	{
+		rectangle( imgProcessed,
+			Point( faces[0].x, faces[0].y),
+			Point( faces[0].x + faces[0].width, faces[0].y + faces[0].height),
+			CV_RGB( 0, 0, 0));
+
+		return true;
+	}
+};
 
 void DetectEyes()
-{};
+{
+	Rect eysROI = Rect( faces[0].x, faces[0].y, faces[0].width, 0.5*faces[0].height);
+	Mat imgEyesROI (imgGray, eysROI );
+	cascadeEye.detectMultiScale(
+		imgEyesROI,
+		eyes,
+		1.1,
+		4 );
+	Mat imgProcessedROI (imgProcessed, eysROI );
+	for( int i = 0; i < eyes.size(); ++i )
+	{
+		rectangle( imgProcessedROI,
+			Point( eyes[i].x, eyes[i].y),
+			Point( eyes[i].x + eyes[i].width, eyes[i].y + eyes[i].height),
+			CV_RGB( 0, 0, 0));
+	}
+};
 
 void DetectEyebrows()
 {};
@@ -228,6 +260,17 @@ void DetectMouth()
 void ProcessAlgorithm()
 {
 	imshow( wndNameSrc, imgSrc );
+
+	imgProcessed = imgSrc.clone();
+	cvtColor( imgSrc, imgGray, CV_RGB2GRAY );
+	equalizeHist( imgGray, imgGray );
+
+	if( DetectFaces() )
+	{
+		DetectEyes();
+	}
+		
+	imshow( wndNameFace, imgProcessed );
 	return;
 };
 
@@ -239,11 +282,6 @@ int main(int argc, char** argv )
 	double exec_time;
 	while( !finish )
 	{
-		if( PROGRAM_MODE == 1 )
-		{
-			imgSrc = imread( imgFileList.at( imIt ));
-		}
-	
 		exec_time = startTime();
 		ProcessAlgorithm();
 		calcExecTime( &exec_time );
@@ -251,15 +289,6 @@ int main(int argc, char** argv )
 		handleKeyboard( waitKey(1) );
 	}
 	
-	
-	
-	
-	
-	Mat img = imread("../data/images/lena.jpg");
-	namedWindow("OpenCV Image", CV_WINDOW_KEEPRATIO );
-	imshow("OpenCV Image", img );
-	waitKey();
-
 	ExitNicely(0);
 }
 

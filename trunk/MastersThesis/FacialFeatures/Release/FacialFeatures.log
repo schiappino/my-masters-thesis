@@ -1,0 +1,23 @@
+﻿Build started 10/09/2011 20:30:34.
+     1>Project "C:\Users\fp\Documents\Visual Studio 2010\Projects\MastersThesis\FacialFeatures\FacialFeatures.vcxproj" on node 2 (build target(s)).
+     1>InitializeBuildStatus:
+         Creating "Release\FacialFeatures.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /ID:\OpenCV\\src\opencv\include /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D WIN32 /D NDEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Release\\" /Fd"Release\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt FacialFeatures.cpp
+         FacialFeatures.cpp
+     1>FacialFeatures.cpp(122): warning C4018: '>=' : signed/unsigned mismatch
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\fp\Documents\Visual Studio 2010\Projects\MastersThesis\Release\FacialFeatures.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:D:\OpenCV\\build\lib\Release opencv_core231.lib opencv_imgproc231.lib opencv_highgui231.lib opencv_ml231.lib opencv_video231.lib opencv_features2d231.lib opencv_calib3d231.lib opencv_objdetect231.lib opencv_contrib231.lib opencv_legacy231.lib opencv_flann231.lib /MANIFEST /ManifestFile:"Release\FacialFeatures.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\Users\fp\Documents\Visual Studio 2010\Projects\MastersThesis\Release\FacialFeatures.pdb" /SUBSYSTEM:CONSOLE /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\fp\Documents\Visual Studio 2010\Projects\MastersThesis\Release\FacialFeatures.lib" /MACHINE:X86 Release\FacialFeatures.obj
+         Generating code
+         Finished generating code
+         FacialFeatures.vcxproj -> C:\Users\fp\Documents\Visual Studio 2010\Projects\MastersThesis\Release\FacialFeatures.exe
+       Manifest:
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:"C:\Users\fp\Documents\Visual Studio 2010\Projects\MastersThesis\Release\FacialFeatures.exe;#1" /manifest Release\FacialFeatures.exe.intermediate.manifest
+       FinalizeBuildStatus:
+         Deleting file "Release\FacialFeatures.unsuccessfulbuild".
+         Touching "Release\FacialFeatures.lastbuildstate".
+     1>Done Building Project "C:\Users\fp\Documents\Visual Studio 2010\Projects\MastersThesis\FacialFeatures\FacialFeatures.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:02.38

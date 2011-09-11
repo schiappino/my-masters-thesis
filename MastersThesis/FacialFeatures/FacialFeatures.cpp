@@ -86,6 +86,8 @@ bool finish = false;
 double          
 	fps = 0, 
 	sec = 0;
+double exec_time;
+
 
 char text[255];
 
@@ -99,8 +101,20 @@ vector<Rect>	faces,
 				mouths;
 
 
-void PutTextWithShadow( const char* text, IplImage* img )
-{};
+void putTextWithShadow(Mat& img, const char *str, Point org, CvScalar color = CV_RGB(0, 255, 100))
+{
+	putText( img, str, Point(org.x -1, org.y-1), FONT_HERSHEY_PLAIN, 1, CV_RGB(50, 50, 50), 2 );
+	putText( img, str, org, FONT_HERSHEY_PLAIN, 1, color );
+};
+void displayStats()
+{
+	sprintf( text, "%dx%d", imgSrc.size().width, imgSrc.size().height );
+	putTextWithShadow( imgProcessed, text, Point(5, 35) );
+
+	sprintf( text, "FPS %2.0f", 1000/exec_time);
+	putTextWithShadow( imgProcessed, text, Point(5, 55) );
+
+}
 
 void ExponentialOperator( IplImage* src, IplImage* dst )
 {};
@@ -162,7 +176,7 @@ bool loadFileList( const char* fileName )
 
 void InitGUI()
 {
-	int flags = CV_WINDOW_KEEPRATIO;
+	int flags = CV_WINDOW_AUTOSIZE;
 
 	namedWindow( wndNameSrc, flags );
 	namedWindow( wndNameFace, flags );
@@ -239,8 +253,9 @@ void DetectEyes()
 	cascadeEye.detectMultiScale(
 		imgEyesROI,
 		eyes,
-		1.1,
-		4 );
+		1.2,
+		4,
+		CV_HAAR_DO_CANNY_PRUNING );
 	Mat imgProcessedROI (imgProcessed, eysROI );
 	for( int i = 0; i < eyes.size(); ++i )
 	{
@@ -269,8 +284,6 @@ void ProcessAlgorithm()
 	{
 		DetectEyes();
 	}
-		
-	imshow( wndNameFace, imgProcessed );
 	return;
 };
 
@@ -279,13 +292,20 @@ int main(int argc, char** argv )
 	Init();
 	InitGUI();
 
-	double exec_time;
 	while( !finish )
 	{
+		// Start time
 		exec_time = startTime();
+
 		ProcessAlgorithm();
+
+		// End time
 		calcExecTime( &exec_time );
-		cout << "Exec time was "<< exec_time << endl;
+		cout << "Exec time was "<< exec_time << "\t" << (int) (1000/exec_time) << " FPS" << endl;
+		
+		displayStats();
+		imshow( wndNameFace, imgProcessed );
+
 		handleKeyboard( waitKey(1) );
 	}
 	

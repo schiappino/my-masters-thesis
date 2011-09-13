@@ -43,11 +43,6 @@ CascadeClassifier
 CvPoint	point1, point2;
 CvFont font;
 
-//CvRect           
-//	* FaceRectROI		= NULL,
-//	* MouthRectROI		= NULL,
-//	* EyeRectROI		= NULL;
-
 Mat        
 	img,
 	imgRaw,

@@ -29,6 +29,8 @@ const char* ColorFeretDBFile = "../data/facedb/color feret/filelist.txt";
 // ****************************** GLOBALS ***************************************************
 const int PROGRAM_MODE = 1;
 
+const double K_EXP_OPERATOR = 0.0217304452751310829264530948549876073716129212732431841605;
+
 CvCapture* capture = NULL;
 
 CascadeClassifier
@@ -58,6 +60,8 @@ Mat
 	imgHSVFull,
 	imgHLS,
 	imgHLSFull;
+
+Mat lookUpTable( 1, 256, CV_8U );
 
 vector<Mat> rgb_planes,
 			hls_planes;
@@ -125,8 +129,10 @@ void displayStats()
 
 }
 
-void ExponentialOperator( IplImage* src, IplImage* dst )
-{};
+inline void exponentialOperator( Mat src, Mat dst )
+{
+	LUT( src, lookUpTable, dst );
+};
 
 void handleKeyboard( char c )
 {
@@ -210,6 +216,13 @@ int Init()
 
 	// Initialize font
 	cvInitFont(&font, CV_FONT_HERSHEY_PLAIN, 1.0, 1.0, 0, 1, CV_AA);
+
+	// Initialize Exponential Operator Look-up Table
+	uchar* p = lookUpTable.data;
+	for( int i = 0; i < 256; ++i )
+	{
+		p[i] = (uchar)exp( i * K_EXP_OPERATOR );
+	}
 
 	// *** MAIN APPLICATION INIT ***
 	// Load image or frame form camera/avi capture;

@@ -9,6 +9,7 @@
 #define COLOR_FERET_DB_SIZE 4000
 #define IMM_DB_SIZE	250
 #define _DEBUG
+#define FACE_DETECT_DEBUG
 //#define _MOUTH_ROI_DEBUG
 
 using namespace cv;
@@ -59,10 +60,7 @@ Mat
 	imgHLSFull;
 
 vector<Mat> rgb_planes,
-			hsv_planes,
-			hls_planes,
-			hsvfull_planes,
-			hlsfull_planes;
+			hls_planes;
 
 
 int                     
@@ -254,10 +252,13 @@ bool DetectFaces()
 
 	if( faces.size() > 0 )
 	{
+#ifdef FACE_DETECT_DEBUG
+		// Draw found face
 		rectangle( imgProcessed,
 			Point( faces[0].x, faces[0].y),
 			Point( faces[0].x + faces[0].width, faces[0].y + faces[0].height),
 			CV_RGB( 0, 0, 0));
+#endif
 
 		return true;
 	}
@@ -331,6 +332,7 @@ void DetectMouth()
 	// Check if detector found anything; if yes draw it
 	if( mouths.size() )
 	{
+#ifdef _MOUTH_ROI_DEBUG
 		// Setup ROI on output image so that object 
 		// coordinates compliy with those on search image
 		Mat imgProcessedROI( imgProcessed, mouthROI );
@@ -339,39 +341,39 @@ void DetectMouth()
 		rectangle( imgProcessedROI, 
 			Point( (int) (mouths[0].x - 0.1*mouths[0].width), (int) (mouths[0].y - 0.1*mouths[0].height) ),
 			Point( (int) (mouths[0].x + 1.1*mouths[0].width), mouths[0].y + mouths[0].height ),
-			CV_RGB(0,0,0) );
+			CV_RGB(0,0,0) 
+		);
+
+		putTextWithShadow(
+			imgProcessed,
+			"Found mouth",
+			Point( mouths[0].x, mouths[0].y )
+		);
+#endif
 	}
 };
 
 void ProcessAlgorithm()
 {
-	//imgProcessed = imgSrc.clone();
+	// Make a copy of source image
 	imgSrc.copyTo( imgProcessed );
 
+	// Convert image to grayscale and HLS colour space
 	cvtColor( imgSrc, imgGray, CV_RGB2GRAY );
-	cvtColor( imgSrc, imgHSV, CV_RGB2HSV );
-	cvtColor( imgSrc, imgHLS, CV_RGB2HLS );
+	cvtColor( imgSrc, imgHLS, CV_RGB2HLS_FULL );
 
-#ifdef _DEBUG 
+	// Split multichannel images into separate planes
+	split( imgSrc, rgb_planes );
+	split( imgHLS, hls_planes );
 
-	cvtColor( imgSrc, imgHSVFull, CV_RGB2HSV_FULL );
-	cvtColor( imgSrc, imgHSVFull, CV_RGB2HLS_FULL );
-
+	// Normalize gray channel to improve face detection
 	equalizeHist( imgGray, imgGray );
 
-	split( imgRGB, rgb_planes );
-	split( imgHSV, hsv_planes );
-	split( imgHSVFull, hsvfull_planes );
-	split( imgHLS, hls_planes );
-	split( imgHLSFull, hlsfull_planes );
-
-#endif
-
-	if( DetectFaces() )
-	{
-		//DetectEyes();
-		DetectMouth();
-	}
+	//if( DetectFaces() )
+	//{
+	//	//DetectEyes();
+	//	//DetectMouth();
+	//}
 	imshow( wndNameFace, imgProcessed );
 	return;
 };

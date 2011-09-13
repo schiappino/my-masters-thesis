@@ -42,6 +42,10 @@ CascadeClassifier
 CvPoint	point1, point2;
 CvFont font;
 
+CvRect
+	foundFaceROI,
+	foundMouthROI;
+
 Mat        
 	img,
 	imgRaw,
@@ -74,6 +78,8 @@ int
 	scale           = 1,
 	imIt			= 0,	// image list literator
 
+	mouthThreshold	= 0,
+
 	TrackbarLoVal   = 2,
 	TrackbarHiVal	= 100,
 	TrackbarMaxVal	= 255;
@@ -90,7 +96,10 @@ char text[255];
 
 const char      
 	* wndNameSrc = "Source",
-	* wndNameFace = "Face";
+	* wndNameFace = "Face",
+	* wndNameMouth = "Mouth",
+
+	* trckbarMouthThresh = "Mouth THR";
 
 vector<string> 	imgFileList;
 vector<Rect>	faces,
@@ -134,6 +143,10 @@ inline void exponentialOperator( Mat src, Mat dst )
 	LUT( src, lookUpTable, dst );
 };
 
+void onThresholdTrackbar( int val, void* )
+{
+	mouthThreshold = val;
+};
 void handleKeyboard( char c )
 {
 	if( c == 27 ) finish = true;		// esc key pressed
@@ -196,6 +209,9 @@ void InitGUI()
 
 	namedWindow( wndNameSrc, flags );
 	namedWindow( wndNameFace, flags );
+	namedWindow( wndNameMouth, flags );
+
+	createTrackbar( trckbarMouthThresh, wndNameMouth, &mouthThreshold, 255, onThresholdTrackbar );
 };
 
 int Init()
@@ -345,6 +361,11 @@ void DetectMouth()
 	// Check if detector found anything; if yes draw it
 	if( mouths.size() )
 	{
+		// Adjust found mouth region
+		foundMouthROI = Rect(
+			(int) (mouthROI.x + mouths[0].x - 0.1*mouths[0].width), (int) (mouthROI.y + mouths[0].y - 0.1*mouths[0].height),
+			(int) (1.2*mouths[0].width), mouths[0].height 
+		);
 #ifdef _MOUTH_ROI_DEBUG
 		// Setup ROI on output image so that object 
 		// coordinates compliy with those on search image
@@ -352,8 +373,8 @@ void DetectMouth()
 
 		// ..and draw it
 		rectangle( imgProcessedROI, 
-			Point( (int) (mouths[0].x - 0.1*mouths[0].width), (int) (mouths[0].y - 0.1*mouths[0].height) ),
-			Point( (int) (mouths[0].x + 1.1*mouths[0].width), mouths[0].y + mouths[0].height ),
+			Point( foundMouthROI.x, foundMouthROI.y ),
+			Point( foundMouthROI.x + foundMouthROI.width, foundMouthROI.y + foundMouthROI.height ),
 			CV_RGB(0,0,0) 
 		);
 
@@ -363,6 +384,11 @@ void DetectMouth()
 			Point( mouths[0].x, mouths[0].y )
 		);
 #endif
+		Mat imgMouthHue( hls_planes[0], foundMouthROI );
+		//bilateralFilter( imgMouthHue, imgMouthHue, 20, 10, 10 );
+		Mat imgMouthThresh ( imgMouthHue.size(), imgMouthHue.type() );
+		threshold( imgMouthHue, imgMouthThresh, (double) mouthThreshold, 255, THRESH_BINARY_INV );
+		imshow( wndNameMouth, imgMouthThresh );
 	}
 };
 
@@ -382,11 +408,11 @@ void ProcessAlgorithm()
 	// Normalize gray channel to improve face detection
 	equalizeHist( imgGray, imgGray );
 
-	//if( DetectFaces() )
-	//{
-	//	//DetectEyes();
-	//	//DetectMouth();
-	//}
+	if( DetectFaces() )
+	{
+		//DetectEyes();
+		DetectMouth();
+	}
 	imshow( wndNameFace, imgProcessed );
 	return;
 };

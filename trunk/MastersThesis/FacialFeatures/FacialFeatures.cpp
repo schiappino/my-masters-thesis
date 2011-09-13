@@ -9,7 +9,7 @@
 #define COLOR_FERET_DB_SIZE 4000
 #define IMM_DB_SIZE	250
 #define _DEBUG
-#define _MOUTH_ROI_DEBUG
+//#define _MOUTH_ROI_DEBUG
 
 using namespace cv;
 using namespace std;
@@ -337,8 +337,8 @@ void DetectMouth()
 
 		// ..and draw it
 		rectangle( imgProcessedROI, 
-			Point( mouths[0].x, mouths[0].y ),
-			Point( mouths[0].x + mouths[0].width, mouths[0].y + mouths[0].height ),
+			Point( (int) (mouths[0].x - 0.1*mouths[0].width), (int) (mouths[0].y - 0.1*mouths[0].height) ),
+			Point( (int) (mouths[0].x + 1.1*mouths[0].width), mouths[0].y + mouths[0].height ),
 			CV_RGB(0,0,0) );
 	}
 };

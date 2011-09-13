@@ -96,11 +96,18 @@ vector<Rect>	faces,
 				mouths;
 
 
-void putTextWithShadow(Mat& img, const char *str, Point org, CvScalar color = CV_RGB(0, 255, 100))
+inline void putTextWithShadow(Mat& img, const char *str, Point org, CvScalar color = CV_RGB(0, 255, 100))
 {
 	putText( img, str, Point(org.x -1, org.y-1), FONT_HERSHEY_PLAIN, 1, CV_RGB(50, 50, 50), 2 );
 	putText( img, str, org, FONT_HERSHEY_PLAIN, 1, color );
 };
+
+inline string getCurentFileName( string filePath )
+{
+	size_t found = filePath.find_last_of("/");
+	return filePath.substr( found + 1 );
+}
+
 void displayStats()
 {
 	// Show image size
@@ -110,6 +117,13 @@ void displayStats()
 	// Show FPS
 	sprintf( text, "FPS %2.0f", 1000/exec_time);
 	putTextWithShadow( imgProcessed, text, Point(5, 55) );
+
+	// When working on files 
+	if( PROGRAM_MODE == 1 ) 
+	{
+		// Show current file name 
+		putTextWithShadow( imgProcessed, getCurentFileName( imgFileList.at(imIt) ).c_str(), Point(5, 75));
+	}
 
 }
 
@@ -149,6 +163,7 @@ double calcExecTime( double* time )
 	*time = 1000 * ((double)getTickCount() - *time)/ getTickFrequency(); 
 	return *time;
 }
+
 
 bool loadFileList( const char* fileName )
 {

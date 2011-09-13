@@ -30,10 +30,6 @@ const int PROGRAM_MODE = 1;
 
 CvCapture* capture = NULL;
 
-
-CvMemStorage 
-	* storage			= NULL;
-
 CascadeClassifier
 	cascadeFace,
 	cascadeMouth,

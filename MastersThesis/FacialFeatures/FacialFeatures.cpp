@@ -6,6 +6,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
+#define HUE_PLANE 0
 #define COLOR_FERET_DB_SIZE 4000
 #define IMM_DB_SIZE	250
 #define _DEBUG
@@ -46,6 +47,8 @@ CvRect
 	foundFaceROI,
 	foundMouthROI;
 
+Scalar mouthHueAvg;
+
 Mat        
 	img,
 	imgRaw,
@@ -79,6 +82,7 @@ int
 	imIt			= 0,	// image list literator
 
 	mouthThreshold	= 0,
+	bilateralBlur	= 0,
 
 	TrackbarLoVal   = 2,
 	TrackbarHiVal	= 100,
@@ -98,8 +102,10 @@ const char
 	* wndNameSrc = "Source",
 	* wndNameFace = "Face",
 	* wndNameMouth = "Mouth",
+	* wndNameBlur = "Blur",
 
-	* trckbarMouthThresh = "Mouth THR";
+	* trckbarMouthThresh = "Mouth THR",
+	* trckbarBilateralBlur = "Bilatera blur";
 
 vector<string> 	imgFileList;
 vector<Rect>	faces,
@@ -136,6 +142,8 @@ void displayStats()
 		putTextWithShadow( imgProcessed, getCurentFileName( imgFileList.at(imIt) ).c_str(), Point(5, 75));
 	}
 
+	sprintf( text, "avg hue %d", mouthHueAvg[0]);
+	putTextWithShadow( imgProcessed, text, Point(5, 95) );
 }
 
 inline void exponentialOperator( Mat src, Mat dst )
@@ -146,6 +154,10 @@ inline void exponentialOperator( Mat src, Mat dst )
 void onThresholdTrackbar( int val, void* )
 {
 	mouthThreshold = val;
+};
+void onBilateralBlur( int val, void* )
+{
+	bilateralBlur = val;
 };
 void handleKeyboard( char c )
 {
@@ -210,8 +222,10 @@ void InitGUI()
 	namedWindow( wndNameSrc, flags );
 	namedWindow( wndNameFace, flags );
 	namedWindow( wndNameMouth, flags );
+	namedWindow( wndNameBlur, flags );
 
 	createTrackbar( trckbarMouthThresh, wndNameMouth, &mouthThreshold, 255, onThresholdTrackbar );
+	createTrackbar( trckbarBilateralBlur, wndNameBlur, &bilateralBlur, 31, onBilateralBlur );
 };
 
 int Init()
@@ -223,7 +237,7 @@ int Init()
 	loadFileList( ColorFeretDBFile );
 
 	// Initialize file list iterator 
-	imIt = imgFileList.size() - 250;
+	imIt = imgFileList.size() - 500;
 
 	// Load cascades
 	if( !cascadeFace.load( cascadeFNameFace) ){ printf("--(!)Error loading\n"); return -1; };
@@ -384,10 +398,14 @@ void DetectMouth()
 			Point( mouths[0].x, mouths[0].y )
 		);
 #endif
-		Mat imgMouthHue( hls_planes[0], foundMouthROI );
+		Mat imgMouthHue( hls_planes[HUE_PLANE], foundMouthROI );
 		//bilateralFilter( imgMouthHue, imgMouthHue, 20, 10, 10 );
 		Mat imgMouthThresh ( imgMouthHue.size(), imgMouthHue.type() );
-		threshold( imgMouthHue, imgMouthThresh, (double) mouthThreshold, 255, THRESH_BINARY_INV );
+		Mat imgBlurredMouth;
+		bilateralFilter( imgMouthHue, imgBlurredMouth, bilateralBlur, bilateralBlur*2, bilateralBlur/2 );
+		imshow( wndNameBlur, imgBlurredMouth );
+		mouthHueAvg = mean( imgMouthHue );
+		threshold( imgBlurredMouth, imgMouthThresh, (double) mouthThreshold, 255, THRESH_BINARY_INV );
 		imshow( wndNameMouth, imgMouthThresh );
 	}
 };

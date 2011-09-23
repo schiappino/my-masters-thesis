@@ -11,7 +11,7 @@
 #define IMM_DB_SIZE	250
 #define _DEBUG
 #define FACE_DETECT_DEBUG
-#define _MOUTH_ROI_DEBUG
+//#define _MOUTH_ROI_DEBUG
 
 using namespace cv;
 using namespace std;
@@ -319,23 +319,29 @@ void DetectEyes() // DO POPRAWKI
 	// Start detecting only if face is found
 	if( faces.size() )
 	{
-		Rect eyesROI = Rect( faces[0].x, faces[0].y, faces[0].width, (int)(0.4*faces[0].height) );
+		Rect eyesROI = Rect( faces[0].x, (int)(faces[0].y + 0.2*faces[0].height), faces[0].width, (int)(0.4*faces[0].height) );
 		Mat imgEyesROI (imgGray, eyesROI );
 
 		cascadeEye.detectMultiScale(
-			imgGray,
+			imgEyesROI,
 			eyes,
-			1.2,
+			1.1,
 			3,
 			CV_HAAR_DO_CANNY_PRUNING );
+		
+		// Setup roi on image
 		Mat imgProcessedROI (imgProcessed, eyesROI );
+		
+		// draw all found eyes
 		for( int i = 0; i < (int)eyes.size(); ++i )
 		{
-			rectangle( imgProcessed,
+			rectangle( imgProcessedROI,
 				Point( eyes[i].x, eyes[i].y),
 				Point( eyes[i].x + eyes[i].width, eyes[i].y + eyes[i].height),
-				CV_RGB( 0, 0, 0));
+				CV_RGB( 0, 0, 0)
+			);
 		}
+		imshow( "dupa", imgProcessedROI );
 	}
 };
 
@@ -436,8 +442,8 @@ void ProcessAlgorithm()
 
 	if( DetectFaces() )
 	{
-		//DetectEyes();
-		DetectMouth();
+		DetectEyes();
+		//DetectMouth();
 	}
 	imshow( wndNameFace, imgProcessed );
 	return;

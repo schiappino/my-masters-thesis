@@ -11,7 +11,7 @@
 #define IMM_DB_SIZE	250
 #define _DEBUG
 #define FACE_DETECT_DEBUG
-//#define _MOUTH_ROI_DEBUG
+#define _MOUTH_ROI_DEBUG
 
 using namespace cv;
 using namespace std;
@@ -237,7 +237,7 @@ int Init()
 	loadFileList( ColorFeretDBFile );
 
 	// Initialize file list iterator 
-	imIt = imgFileList.size() - 500;
+	imIt = imgFileList.size() - 20;
 
 	// Load cascades
 	if( !cascadeFace.load( cascadeFNameFace) ){ printf("--(!)Error loading\n"); return -1; };
@@ -300,7 +300,12 @@ bool DetectFaces()
 		rectangle( imgProcessed,
 			Point( faces[0].x, faces[0].y),
 			Point( faces[0].x + faces[0].width, faces[0].y + faces[0].height),
-			CV_RGB( 0, 0, 0));
+			CV_RGB( 100, 255, 0));
+		putTextWithShadow(
+			imgProcessed,
+			"Found face",
+			Point( faces[0].x, faces[0].y )
+		);
 #endif
 
 		return true;
@@ -346,7 +351,7 @@ void DetectMouth()
 		(int) (0.6*faces[0].width), 
 		(int) (0.45*faces[0].height));
 
-#ifdef _MOUTH_ROI_DEBUG
+	#ifdef _MOUTH_ROI_DEBUG
 	// Show up ROI on source image
 	rectangle( 
 		imgProcessed, 
@@ -359,7 +364,7 @@ void DetectMouth()
 		"Mouth detection ROI",
 		Point( mouthROI.x, mouthROI.y )
 	);
-#endif
+	#endif
 	
 	// Setup ROI on image where detection will be done
 	Mat imgMouthROI( imgGray, mouthROI );
@@ -380,7 +385,8 @@ void DetectMouth()
 			(int) (mouthROI.x + mouths[0].x - 0.1*mouths[0].width), (int) (mouthROI.y + mouths[0].y - 0.1*mouths[0].height),
 			(int) (1.2*mouths[0].width), mouths[0].height 
 		);
-#ifdef _MOUTH_ROI_DEBUG
+		
+		#ifdef _MOUTH_ROI_DEBUG
 		// Setup ROI on output image so that object 
 		// coordinates compliy with those on search image
 		Mat imgProcessedROI( imgProcessed, mouthROI );
@@ -397,14 +403,16 @@ void DetectMouth()
 			"Found mouth",
 			Point( mouths[0].x, mouths[0].y )
 		);
-#endif
+		#endif
+
 		Mat imgMouthHue( hls_planes[HUE_PLANE], foundMouthROI );
-		//bilateralFilter( imgMouthHue, imgMouthHue, 20, 10, 10 );
 		Mat imgMouthThresh ( imgMouthHue.size(), imgMouthHue.type() );
 		Mat imgBlurredMouth;
 		bilateralFilter( imgMouthHue, imgBlurredMouth, bilateralBlur, bilateralBlur*2, bilateralBlur/2 );
 		imshow( wndNameBlur, imgBlurredMouth );
 		mouthHueAvg = mean( imgMouthHue );
+
+		mouthThreshold = mouthHueAvg.val[0];
 		threshold( imgBlurredMouth, imgMouthThresh, (double) mouthThreshold, 255, THRESH_BINARY_INV );
 		imshow( wndNameMouth, imgMouthThresh );
 	}
@@ -423,7 +431,7 @@ void ProcessAlgorithm()
 	split( imgSrc, rgb_planes );
 	split( imgHLS, hls_planes );
 
-	// Normalize gray channel to improve face detection
+	// Normalize gray channel to improve all shit
 	equalizeHist( imgGray, imgGray );
 
 	if( DetectFaces() )

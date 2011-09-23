@@ -326,7 +326,7 @@ void DetectEyes() // DO POPRAWKI
 			imgEyesROI,
 			eyes,
 			1.1,
-			3,
+			5,
 			CV_HAAR_DO_CANNY_PRUNING );
 		
 		// Setup roi on image

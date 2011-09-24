@@ -14,7 +14,7 @@
 //#define _MOUTH_ROI_DEBUG
 #define _CRT_SECURE_NO_WARNINGS 1
 //#define EYES_DETECT_SINGLE_CASCADE
-#define EYES_DETECT_MULTI_CASCADE
+//#define EYES_DETECT_MULTI_CASCADE
 
 using namespace cv;
 using namespace std;
@@ -229,8 +229,8 @@ void InitGUI()
 
 	namedWindow( wndNameSrc, flags );
 	namedWindow( wndNameFace, flags );
-	namedWindow( wndNameMouth, flags );
-	namedWindow( wndNameBlur, flags );
+	//namedWindow( wndNameMouth, flags );
+	//namedWindow( wndNameBlur, flags );
 
 	createTrackbar( trckbarMouthThresh, wndNameMouth, &mouthThreshold, 255, onThresholdTrackbar );
 	createTrackbar( trckbarBilateralBlur, wndNameBlur, &bilateralBlur, 31, onBilateralBlur );
@@ -400,7 +400,21 @@ void DetectEyes()
 		imshow( "Left", imgProcessedWithLeftEye );
 		imshow( "Right", imgProcessedWithRightEye );
 		#endif
+		
+		Mat imgEyesRedChannel (rgb_planes[0], eyesROI );
+		imshow( "Eyes Red Channel", imgEyesRedChannel );
 
+		equalizeHist( imgEyesRedChannel, imgEyesRedChannel );
+		bitwise_not( imgEyesRedChannel, imgEyesRedChannel );
+		imshow( "Eyes Inverted Red Channel", imgEyesRedChannel );
+
+		exponentialOperator( imgEyesRedChannel, imgEyesRedChannel );
+		imshow( "Eyes Exponential Transform", imgEyesRedChannel );
+
+		Mat imgEyeLeft,
+			imgEyeRight;
+		imgEyesRedChannel.copyTo( imgEyeLeft );
+		imgEyesRedChannel.copyTo( imgEyeRight );
 	}
 };
 

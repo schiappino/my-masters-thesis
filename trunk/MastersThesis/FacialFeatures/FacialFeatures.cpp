@@ -13,12 +13,16 @@
 #define FACE_DETECT_DEBUG
 //#define _MOUTH_ROI_DEBUG
 #define _CRT_SECURE_NO_WARNINGS 1
+//#define EYES_DETECT_SINGLE_CASCADE
+#define EYES_DETECT_MULTI_CASCADE
 
 using namespace cv;
 using namespace std;
 
 // ********************************** CASCADE FILES ******************************************
 const char* cascadeFNameEye   = "../data/cascades/haarcascade_eye.xml";
+const char* cascadeFNameEyeRightSplit = "../data/cascades/haarcascade_righteye_2splits.xml";
+const char* cascadeFNameEyeLeftSplit = "../data/cascades/haarcascade_lefteye_2splits.xml";
 const char* cascadeFNameFace  = "../data/cascades/haarcascade_frontalface_alt.xml";
 const char* cascadeFNameMouth = "../data/cascades/haarcascade_mcs_mouth.xml";
 
@@ -38,7 +42,9 @@ CvCapture* capture = NULL;
 CascadeClassifier
 	cascadeFace,
 	cascadeMouth,
-	cascadeEye;
+	cascadeEye,
+	cascadeEyeRight,
+	cascadeEyeLeft;
 
 
 CvPoint	point1, point2;
@@ -241,9 +247,11 @@ int Init()
 	imIt = imgFileList.size() - 20;
 
 	// Load cascades
-	if( !cascadeFace.load( cascadeFNameFace) ){ printf("--(!)Error loading\n"); return -1; };
-	if( !cascadeEye.load( cascadeFNameEye ) ){ printf("--(!)Error loading\n"); return -1; };
-	if( !cascadeMouth.load( cascadeFNameMouth ) ){ printf("--(!)Error loading\n"); return -1; };
+	if( !cascadeFace.load( cascadeFNameFace) )				{ printf("--(!)Error loading\n"); return -1; };
+	if( !cascadeEyeRight.load( cascadeFNameEyeRightSplit ) ){ printf("--(!)Error loading\n"); return -1; };
+	if( !cascadeEyeLeft.load( cascadeFNameEyeLeftSplit ) )	{ printf("--(!)Error loading\n"); return -1; };
+	if( !cascadeMouth.load( cascadeFNameMouth ) )			{ printf("--(!)Error loading\n"); return -1; };
+	if( !cascadeMouth.load( cascadeFNameMouth ) )			{ printf("--(!)Error loading\n"); return -1; };
 
 	// Initialize font
 	cvInitFont(&font, CV_FONT_HERSHEY_PLAIN, 1.0, 1.0, 0, 1, CV_AA);
@@ -323,17 +331,17 @@ void DetectEyes() // DO POPRAWKI
 	// Start detecting only if face is found
 	if( faces.size() )
 	{
-		Rect eyesROI	 = Rect( faces[0].x,						(int)(faces[0].y + 0.2*faces[0].height), 
-								 faces[0].width,					(int)(0.4*faces[0].height) );
+		Rect eyesROI	 = Rect( faces[0].x,							(int)(faces[0].y + 0.2*faces[0].height), 
+								 faces[0].width,						(int)(0.4*faces[0].height) );
 
-		Rect eyeRightROI = Rect( faces[0].x,						(int)(faces[0].y + 0.2*faces[0].height), 
-								 (int)0.4*faces[0].width,			(int)(0.4*faces[0].height) );
+		Rect eyeRightROI = Rect( faces[0].x,							(int)(faces[0].y + 0.2*faces[0].height), 
+								 (int)(0.4*faces[0].width),				(int)(0.4*faces[0].height) );
 
-		Rect eyeLeftROI	 = Rect( faces[0].x + 0.6*faces[0].width,	(int)(faces[0].y + 0.2*faces[0].height), 
-								 (int)0.4*faces[0].width,			(int)(0.4*faces[0].height) );
+		Rect eyeLeftROI	 = Rect( (int)(faces[0].x + 0.6*faces[0].width),(int)(faces[0].y + 0.2*faces[0].height), 
+								 (int)(0.4*faces[0].width),				(int)(0.4*faces[0].height) );
 		
+		#ifdef EYES_DETECT_SINGLE_CASCADE		
 		Mat imgEyesROI (imgGray, eyesROI );
-
 		cascadeEye.detectMultiScale(
 			imgEyesROI,
 			eyes,
@@ -353,7 +361,41 @@ void DetectEyes() // DO POPRAWKI
 				CV_RGB(0, 0, 0)
 			);
 		}
-		imshow( "dupa", imgProcessedROI );
+		imshow( "Foo", imgProcessedROI );
+		#endif
+		#ifdef EYES_DETECT_MULTI_CASCADE
+		vector<Rect> eyesLeft,
+					 eyesRight;
+		Mat imgEyeLeft	( imgGray, eyeLeftROI ),
+			imgEyeRight ( imgGray, eyeRightROI );
+		
+		cascadeEyeLeft.detectMultiScale( imgEyeLeft,	eyesLeft, 1.1, 5 );
+		cascadeEyeRight.detectMultiScale( imgEyeRight, eyesRight, 1.1, 5 );
+		
+		Mat imgProcessedWithRightEye ( imgGray, eyeRightROI ),
+			imgProcessedWithLeftEye	 ( imgGray, eyeLeftROI );
+		
+		for( int i = 0; i < (int)eyesRight.size(); ++i )
+		{
+			rectangle( imgProcessedWithRightEye,
+				Point( eyesRight[i].x, eyesRight[i].y),
+				Point( eyesRight[i].x + eyesRight[i].width, eyesRight[i].y + eyesRight[i].height),
+				CV_RGB(0, 0, 0)
+			);
+		}
+		for( int i = 0; i < (int)eyesLeft.size(); ++i )
+		{
+			rectangle( imgProcessedWithLeftEye,
+				Point( eyesLeft[i].x, eyesLeft[i].y),
+				Point( eyesLeft[i].x + eyesLeft[i].width, eyesLeft[i].y + eyesLeft[i].height),
+				CV_RGB(0, 0, 0)
+			);
+		}
+
+		imshow( "Left", imgProcessedWithLeftEye );
+		imshow( "Right", imgProcessedWithRightEye );
+		#endif
+
 	}
 };
 
@@ -430,7 +472,7 @@ void DetectMouth()
 		imshow( wndNameBlur, imgBlurredMouth );
 		mouthHueAvg = mean( imgMouthHue );
 
-		mouthThreshold = mouthHueAvg.val[0];
+		mouthThreshold = (int)mouthHueAvg.val[0];
 		threshold( imgBlurredMouth, imgMouthThresh, (double) mouthThreshold, 255, THRESH_BINARY_INV );
 		imshow( wndNameMouth, imgMouthThresh );
 	}

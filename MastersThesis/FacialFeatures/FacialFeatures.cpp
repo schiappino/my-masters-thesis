@@ -65,7 +65,6 @@ Mat
 	imgGray,
 	imgThresh,
 	imgEdge,
-	imgEyes,
 	imgEyebrows,
 	imgMouth,
 	imgProcessed,
@@ -91,6 +90,7 @@ int
 
 	mouthThreshold	= 0,
 	bilateralBlur	= 0,
+	eyeThreshold	= 0,
 
 	TrackbarLoVal   = 2,
 	TrackbarHiVal	= 100,
@@ -111,9 +111,12 @@ const char
 	* wndNameFace = "Face",
 	* wndNameMouth = "Mouth",
 	* wndNameBlur = "Blur",
+	* wndNameLeftEye = "Left eye",
+	* wndNameRightEye = "Right eye",
 
 	* trckbarMouthThresh = "Mouth THR",
-	* trckbarBilateralBlur = "Bilatera blur";
+	* trckbarBilateralBlur = "Bilatera blur",
+	* trckbarEyeThreshold = "Eyes THR";
 
 vector<string> 	imgFileList;
 vector<Rect>	faces,
@@ -152,6 +155,9 @@ void displayStats()
 
 	sprintf( text, "avg hue %d", mouthHueAvg[0]);
 	putTextWithShadow( imgProcessed, text, Point(5, 95) );
+
+	sprintf( text, "Current Image %d", imIt);
+	putTextWithShadow( imgProcessed, text, Point(5, 115) );
 }
 
 inline void exponentialOperator( Mat src, Mat dst )
@@ -162,6 +168,10 @@ inline void exponentialOperator( Mat src, Mat dst )
 void onThresholdTrackbar( int val, void* )
 {
 	mouthThreshold = val;
+};
+void onEyeThresholdTrackbar( int val, void* )
+{
+	eyeThreshold = val;
 };
 void onBilateralBlur( int val, void* )
 {
@@ -229,11 +239,12 @@ void InitGUI()
 
 	namedWindow( wndNameSrc, flags );
 	namedWindow( wndNameFace, flags );
-	//namedWindow( wndNameMouth, flags );
-	//namedWindow( wndNameBlur, flags );
+	namedWindow( wndNameLeftEye, flags );
+	namedWindow( wndNameRightEye, flags );
 
 	createTrackbar( trckbarMouthThresh, wndNameMouth, &mouthThreshold, 255, onThresholdTrackbar );
 	createTrackbar( trckbarBilateralBlur, wndNameBlur, &bilateralBlur, 31, onBilateralBlur );
+	createTrackbar( trckbarEyeThreshold, "", &eyeThreshold, 255, onEyeThresholdTrackbar );
 };
 
 int Init()
@@ -340,14 +351,14 @@ void DetectEyes()
 								 (int)(0.4*faces[0].width),				(int)(0.4*faces[0].height) );
 		
 		// Normalize histogram to improve all shit
-		Mat imgEyes ( imgGray, eyesROI );
-		equalizeHist( imgEyes, imgEyes );
+		Mat imgGrayEyes ( imgGray, eyesROI );
+		equalizeHist( imgGrayEyes, imgGrayEyes );
 
 		#ifdef EYES_DETECT_SINGLE_CASCADE		
 		// Here both eyes are found at the same time by single pass
-		Mat imgEyesROI (imgGray, eyesROI );
+		Mat imgGrayEyesROI (imgGray, eyesROI );
 		cascadeEye.detectMultiScale(
-			imgEyesROI,
+			imgGrayEyesROI,
 			eyes,
 			1.1,
 			5,
@@ -401,20 +412,21 @@ void DetectEyes()
 		imshow( "Right", imgProcessedWithRightEye );
 		#endif
 		
-		Mat imgEyesRedChannel (rgb_planes[0], eyesROI );
-		imshow( "Eyes Red Channel", imgEyesRedChannel );
+		Mat imgEyes		( rgb_planes[0], eyesROI );
+		Mat imgEyeLeft	( rgb_planes[0], eyeLeftROI ),
+			imgEyeRight ( rgb_planes[0], eyeRightROI );
 
-		equalizeHist( imgEyesRedChannel, imgEyesRedChannel );
-		bitwise_not( imgEyesRedChannel, imgEyesRedChannel );
-		imshow( "Eyes Inverted Red Channel", imgEyesRedChannel );
+		equalizeHist( imgEyes, imgEyes );
+		bitwise_not( imgEyes, imgEyes );
+		exponentialOperator( imgEyes, imgEyes );
+		Scalar avgIntensityLeftEye = mean( imgEyeLeft );
+		Scalar avgIntensityRightEye = mean( imgEyeRight );
+		imshow( "Eyes Exponential Transform", imgEyes );
 
-		exponentialOperator( imgEyesRedChannel, imgEyesRedChannel );
-		imshow( "Eyes Exponential Transform", imgEyesRedChannel );
+		threshold( imgEyes, imgEyes, eyeThreshold, 255, THRESH_BINARY );
 
-		Mat imgEyeLeft,
-			imgEyeRight;
-		imgEyesRedChannel.copyTo( imgEyeLeft );
-		imgEyesRedChannel.copyTo( imgEyeRight );
+		imshow( wndNameLeftEye, imgEyeLeft );
+		imshow( wndNameRightEye, imgEyeRight );
 	}
 };
 

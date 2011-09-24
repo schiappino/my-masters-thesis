@@ -424,6 +424,9 @@ void DetectEyes()
 		imshow( "Eyes Exponential Transform", imgEyes );
 
 		threshold( imgEyes, imgEyes, eyeThreshold, 255, THRESH_BINARY );
+		
+		Mat kernel = getStructuringElement( MORPH_ELLIPSE, Size(3, 3) );
+		morphologyEx( imgEyes, imgEyes, MORPH_CLOSE, kernel, Point(1,1), 3 );
 
 		imshow( wndNameLeftEye, imgEyeLeft );
 		imshow( wndNameRightEye, imgEyeRight );

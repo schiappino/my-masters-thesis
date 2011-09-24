@@ -20,14 +20,15 @@ using namespace cv;
 using namespace std;
 
 // ********************************** CASCADE FILES ******************************************
-const char* cascadeFNameEye   = "../data/cascades/haarcascade_eye.xml";
-const char* cascadeFNameEyeRightSplit = "../data/cascades/haarcascade_righteye_2splits.xml";
-const char* cascadeFNameEyeLeftSplit = "../data/cascades/haarcascade_lefteye_2splits.xml";
-const char* cascadeFNameFace  = "../data/cascades/haarcascade_frontalface_alt.xml";
-const char* cascadeFNameMouth = "../data/cascades/haarcascade_mcs_mouth.xml";
+const char* cascadeFNameEye				= "../data/cascades/haarcascade_eye.xml";
+const char* cascadeFNameEyeRightSplit	= "../data/cascades/haarcascade_righteye_2splits.xml";
+const char* cascadeFNameEyeLeftSplit	= "../data/cascades/haarcascade_lefteye_2splits.xml";
+const char* cascadeFNameFace			= "../data/cascades/haarcascade_frontalface_alt.xml";
+const char* cascadeFNameMouth			= "../data/cascades/haarcascade_mcs_mouth.xml";
 
-const char* IMMFaceDBFile = "../data/facedb/imm/filelist.txt";
-const char* ColorFeretDBFile = "../data/facedb/color feret/filelist.txt";
+// ********************************** IMAGE FILES *******************************************
+const char* IMMFaceDBFile				= "../data/facedb/imm/filelist.txt";
+const char* ColorFeretDBFile			= "../data/facedb/color feret/filelist.txt";
 
 // *********************************** VIDEO FILES ******************************************
 
@@ -324,25 +325,26 @@ bool DetectFaces()
 		return false;
 };
 
-void DetectEyes() // DO POPRAWKI
+void DetectEyes()
 {
 	// Start detecting only if face is found
 	if( faces.size() )
 	{
 		Rect eyesROI	 = Rect( faces[0].x,							(int)(faces[0].y + 0.2*faces[0].height), 
-								 faces[0].width,						(int)(0.3*faces[0].height) );
+								 faces[0].width,						(int)(0.4*faces[0].height) );
 
-		Rect eyeLeftROI	 = Rect( faces[0].x,							(int)(faces[0].y + 0.2*faces[0].height), 
-								 (int)(0.4*faces[0].width),				(int)(0.3*faces[0].height) );
+		Rect eyeLeftROI	 = Rect( (int)(faces[0].x + 0.1*faces[0].width),(int)(faces[0].y + 0.2*faces[0].height), 
+								 (int)(0.4*faces[0].width),				(int)(0.4*faces[0].height) );
 
-		Rect eyeRightROI = Rect( (int)(faces[0].x + 0.6*faces[0].width),(int)(faces[0].y + 0.2*faces[0].height), 
-								 (int)(0.4*faces[0].width),				(int)(0.3*faces[0].height) );
+		Rect eyeRightROI = Rect( (int)(faces[0].x + 0.5*faces[0].width),(int)(faces[0].y + 0.2*faces[0].height), 
+								 (int)(0.4*faces[0].width),				(int)(0.4*faces[0].height) );
 		
 		// Normalize histogram to improve all shit
 		Mat imgEyes ( imgGray, eyesROI );
 		equalizeHist( imgEyes, imgEyes );
 
 		#ifdef EYES_DETECT_SINGLE_CASCADE		
+		// Here both eyes are found at the same time by single pass
 		Mat imgEyesROI (imgGray, eyesROI );
 		cascadeEye.detectMultiScale(
 			imgEyesROI,
@@ -366,13 +368,14 @@ void DetectEyes() // DO POPRAWKI
 		imshow( "Foo", imgProcessedROI );
 		#endif
 		#ifdef EYES_DETECT_MULTI_CASCADE
+		// TEMPORARY APPROACH: detecting eye pos in two passes		
 		vector<Rect> eyesLeft,
 					 eyesRight;
 		Mat imgEyeLeft	( imgGray, eyeLeftROI ),
 			imgEyeRight ( imgGray, eyeRightROI );
 		
-		cascadeEyeLeft.detectMultiScale( imgEyeLeft,	eyesLeft, 1.1, 5 );
-		cascadeEyeRight.detectMultiScale( imgEyeRight, eyesRight, 1.1, 5 );
+		cascadeEyeLeft.detectMultiScale( imgEyeLeft,	eyesLeft, 1.1, 3, CV_HAAR_FIND_BIGGEST_OBJECT );
+		cascadeEyeRight.detectMultiScale( imgEyeRight, eyesRight, 1.1, 3, CV_HAAR_FIND_BIGGEST_OBJECT );
 		
 		Mat imgProcessedWithRightEye ( imgGray, eyeRightROI ),
 			imgProcessedWithLeftEye	 ( imgGray, eyeLeftROI );

@@ -300,9 +300,7 @@ bool DetectFaces()
 		faces, 
 		1.1, 
 		2, 
-		CV_HAAR_FIND_BIGGEST_OBJECT,
-		Size(400,400),
-		imgSrc.size()
+		CV_HAAR_FIND_BIGGEST_OBJECT
 	);
 
 	if( faces.size() > 0 )
@@ -332,14 +330,18 @@ void DetectEyes() // DO POPRAWKI
 	if( faces.size() )
 	{
 		Rect eyesROI	 = Rect( faces[0].x,							(int)(faces[0].y + 0.2*faces[0].height), 
-								 faces[0].width,						(int)(0.4*faces[0].height) );
+								 faces[0].width,						(int)(0.3*faces[0].height) );
 
-		Rect eyeRightROI = Rect( faces[0].x,							(int)(faces[0].y + 0.2*faces[0].height), 
-								 (int)(0.4*faces[0].width),				(int)(0.4*faces[0].height) );
+		Rect eyeLeftROI	 = Rect( faces[0].x,							(int)(faces[0].y + 0.2*faces[0].height), 
+								 (int)(0.4*faces[0].width),				(int)(0.3*faces[0].height) );
 
-		Rect eyeLeftROI	 = Rect( (int)(faces[0].x + 0.6*faces[0].width),(int)(faces[0].y + 0.2*faces[0].height), 
-								 (int)(0.4*faces[0].width),				(int)(0.4*faces[0].height) );
+		Rect eyeRightROI = Rect( (int)(faces[0].x + 0.6*faces[0].width),(int)(faces[0].y + 0.2*faces[0].height), 
+								 (int)(0.4*faces[0].width),				(int)(0.3*faces[0].height) );
 		
+		// Normalize histogram to improve all shit
+		Mat imgEyes ( imgGray, eyesROI );
+		equalizeHist( imgEyes, imgEyes );
+
 		#ifdef EYES_DETECT_SINGLE_CASCADE		
 		Mat imgEyesROI (imgGray, eyesROI );
 		cascadeEye.detectMultiScale(
@@ -490,9 +492,6 @@ void ProcessAlgorithm()
 	// Split multichannel images into separate planes
 	split( imgSrc, rgb_planes );
 	split( imgHLS, hls_planes );
-
-	// Normalize gray channel to improve all shit
-	equalizeHist( imgGray, imgGray );
 
 	if( DetectFaces() )
 	{

@@ -12,6 +12,7 @@
 #define _DEBUG
 #define FACE_DETECT_DEBUG
 //#define _MOUTH_ROI_DEBUG
+#define _CRT_SECURE_NO_WARNINGS 1
 
 using namespace cv;
 using namespace std;
@@ -291,11 +292,14 @@ bool DetectFaces()
 		faces, 
 		1.1, 
 		2, 
-		CV_HAAR_FIND_BIGGEST_OBJECT);
+		CV_HAAR_FIND_BIGGEST_OBJECT,
+		Size(400,400),
+		imgSrc.size()
+	);
 
 	if( faces.size() > 0 )
 	{
-#ifdef FACE_DETECT_DEBUG
+		#ifdef FACE_DETECT_DEBUG
 		// Draw found face
 		rectangle( imgProcessed,
 			Point( faces[0].x, faces[0].y),
@@ -306,7 +310,7 @@ bool DetectFaces()
 			"Found face",
 			Point( faces[0].x, faces[0].y )
 		);
-#endif
+		#endif
 
 		return true;
 	}
@@ -319,7 +323,15 @@ void DetectEyes() // DO POPRAWKI
 	// Start detecting only if face is found
 	if( faces.size() )
 	{
-		Rect eyesROI = Rect( faces[0].x, (int)(faces[0].y + 0.2*faces[0].height), faces[0].width, (int)(0.4*faces[0].height) );
+		Rect eyesROI	 = Rect( faces[0].x,						(int)(faces[0].y + 0.2*faces[0].height), 
+								 faces[0].width,					(int)(0.4*faces[0].height) );
+
+		Rect eyeRightROI = Rect( faces[0].x,						(int)(faces[0].y + 0.2*faces[0].height), 
+								 (int)0.4*faces[0].width,			(int)(0.4*faces[0].height) );
+
+		Rect eyeLeftROI	 = Rect( faces[0].x + 0.6*faces[0].width,	(int)(faces[0].y + 0.2*faces[0].height), 
+								 (int)0.4*faces[0].width,			(int)(0.4*faces[0].height) );
+		
 		Mat imgEyesROI (imgGray, eyesROI );
 
 		cascadeEye.detectMultiScale(
@@ -338,7 +350,7 @@ void DetectEyes() // DO POPRAWKI
 			rectangle( imgProcessedROI,
 				Point( eyes[i].x, eyes[i].y),
 				Point( eyes[i].x + eyes[i].width, eyes[i].y + eyes[i].height),
-				CV_RGB( 0, 0, 0)
+				CV_RGB(0, 0, 0)
 			);
 		}
 		imshow( "dupa", imgProcessedROI );

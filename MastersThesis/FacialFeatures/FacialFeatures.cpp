@@ -87,6 +87,7 @@ int
 	object_size		= 0,
 	scale           = 1,
 	imIt			= 0,	// image list literator
+	z				= 10,
 
 	mouthThreshold	= 0,
 	bilateralBlur	= 0,
@@ -100,8 +101,8 @@ bool finish = false;
 
 double          
 	fps = 0, 
-	sec = 0;
-double exec_time;
+	sec = 0,
+	exec_time;
 
 
 char text[255];
@@ -113,15 +114,18 @@ const char
 	* wndNameBlur = "Blur",
 	* wndNameLeftEye = "Left eye",
 	* wndNameRightEye = "Right eye",
+	* wndNameEyesExpTrans = "Eyes Exponential Transform",
 
 	* trckbarMouthThresh = "Mouth THR",
 	* trckbarBilateralBlur = "Bilatera blur",
+	* trckbarZ = "Z",
 	* trckbarEyeThreshold = "Eyes THR";
 
 vector<string> 	imgFileList;
 vector<Rect>	faces,
 				eyes,
 				mouths;
+
 
 
 inline void putTextWithShadow(Mat& img, const char *str, Point org, CvScalar color = CV_RGB(0, 255, 100))
@@ -173,10 +177,31 @@ void onEyeThresholdTrackbar( int val, void* )
 {
 	eyeThreshold = val;
 };
+void onZTrackbar( int val, void* )
+{
+	z = val;
+};
 void onBilateralBlur( int val, void* )
 {
 	bilateralBlur = val;
 };
+
+void InitGUI()
+{
+	int flags = CV_WINDOW_KEEPRATIO;
+
+	namedWindow( wndNameSrc, flags );
+	namedWindow( wndNameFace, flags );
+	namedWindow( wndNameLeftEye, flags );
+	namedWindow( wndNameRightEye, flags );
+	namedWindow( wndNameEyesExpTrans, flags );
+
+	createTrackbar( trckbarMouthThresh, wndNameMouth, &mouthThreshold, 255, onThresholdTrackbar );
+	createTrackbar( trckbarBilateralBlur, wndNameBlur, &bilateralBlur, 31, onBilateralBlur );
+	createTrackbar( trckbarEyeThreshold, "", &eyeThreshold, 255, onEyeThresholdTrackbar );
+	createTrackbar( trckbarZ, "", &z, 50, onZTrackbar );
+};
+
 void handleKeyboard( char c )
 {
 	if( c == 27 ) finish = true;		// esc key pressed
@@ -233,27 +258,13 @@ bool loadFileList( const char* fileName )
 		return false;
 }
 
-void InitGUI()
-{
-	int flags = CV_WINDOW_KEEPRATIO;
-
-	namedWindow( wndNameSrc, flags );
-	namedWindow( wndNameFace, flags );
-	namedWindow( wndNameLeftEye, flags );
-	namedWindow( wndNameRightEye, flags );
-
-	createTrackbar( trckbarMouthThresh, wndNameMouth, &mouthThreshold, 255, onThresholdTrackbar );
-	createTrackbar( trckbarBilateralBlur, wndNameBlur, &bilateralBlur, 31, onBilateralBlur );
-	createTrackbar( trckbarEyeThreshold, "", &eyeThreshold, 255, onEyeThresholdTrackbar );
-};
-
 int Init()
 {
 	// Initialize file list containers
 	imgFileList.reserve( COLOR_FERET_DB_SIZE );
 
 	// Load list of images to container
-	loadFileList( ColorFeretDBFile );
+	loadFileList( IMMFaceDBFile );
 
 	// Initialize file list iterator 
 	imIt = imgFileList.size() - 20;
@@ -416,17 +427,21 @@ void DetectEyes()
 		Mat imgEyeLeft	( rgb_planes[0], eyeLeftROI ),
 			imgEyeRight ( rgb_planes[0], eyeRightROI );
 
-		equalizeHist( imgEyes, imgEyes );
+		equalizeHist( imgEyeRight, imgEyeRight );
+		equalizeHist( imgEyeLeft, imgEyeLeft );
 		bitwise_not( imgEyes, imgEyes );
 		exponentialOperator( imgEyes, imgEyes );
 		Scalar avgIntensityLeftEye = mean( imgEyeLeft );
 		Scalar avgIntensityRightEye = mean( imgEyeRight );
-		imshow( "Eyes Exponential Transform", imgEyes );
+		Scalar stdDev, avgIntensity;
+		meanStdDev( imgEyeLeft, avgIntensity, stdDev );
+		imshow( wndNameEyesExpTrans, imgEyes );
+		eyeThreshold = (int)(avgIntensity.val[0] + stdDev.val[0]*z/10);
 
 		threshold( imgEyes, imgEyes, eyeThreshold, 255, THRESH_BINARY );
 		
 		Mat kernel = getStructuringElement( MORPH_ELLIPSE, Size(3, 3) );
-		morphologyEx( imgEyes, imgEyes, MORPH_CLOSE, kernel, Point(1,1), 3 );
+		//morphologyEx( imgEyes, imgEyes, MORPH_CLOSE, kernel, Point(1,1), 3 );
 
 		imshow( wndNameLeftEye, imgEyeLeft );
 		imshow( wndNameRightEye, imgEyeRight );
@@ -558,7 +573,5 @@ int main(int argc, char** argv )
 
 		handleKeyboard( waitKey(1) );
 	}
-	
 	ExitNicely(0);
 }
-

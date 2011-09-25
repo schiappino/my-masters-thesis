@@ -188,7 +188,7 @@ void onBilateralBlur( int val, void* )
 
 void InitGUI()
 {
-	int flags = CV_WINDOW_KEEPRATIO;
+	int flags = CV_WINDOW_KEEPRATIO | CV_GUI_NORMAL;
 
 	namedWindow( wndNameSrc, flags );
 	namedWindow( wndNameFace, flags );
@@ -431,18 +431,30 @@ void DetectEyes()
 		equalizeHist( imgEyeLeft, imgEyeLeft );
 		bitwise_not( imgEyes, imgEyes );
 		exponentialOperator( imgEyes, imgEyes );
+		imshow( wndNameEyesExpTrans, imgEyes );
+
 		Scalar avgIntensityLeftEye = mean( imgEyeLeft );
 		Scalar avgIntensityRightEye = mean( imgEyeRight );
 		Scalar stdDev, avgIntensity;
 		meanStdDev( imgEyeLeft, avgIntensity, stdDev );
-		imshow( wndNameEyesExpTrans, imgEyes );
 		eyeThreshold = (int)(avgIntensity.val[0] + stdDev.val[0]*z/10);
 
 		threshold( imgEyes, imgEyes, eyeThreshold, 255, THRESH_BINARY );
-		
 		Mat kernel = getStructuringElement( MORPH_ELLIPSE, Size(3, 3) );
-		//morphologyEx( imgEyes, imgEyes, MORPH_CLOSE, kernel, Point(1,1), 3 );
+		morphologyEx( imgEyes, imgEyes, MORPH_CLOSE, kernel, Point(1,1), 1 );
+		morphologyEx( imgEyes, imgEyes, MORPH_OPEN, kernel, Point(1,1), 1 );
 
+		Mat imgEyeBinaryCopy;
+		imgEyeLeft.copyTo( imgEyeBinaryCopy );
+		vector<vector<Point> > contours;
+		vector<Vec4i> hierarchy;
+		findContours( imgEyeBinaryCopy, contours, hierarchy, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE );
+		Mat imgProcessedLeftEye ( imgProcessed, eyeLeftROI );
+		for( int i = 0; i < contours.size(); ++i )
+		{
+			drawContours( imgProcessedLeftEye, contours, i, CV_RGB(0,100,255) );
+		}
+		
 		imshow( wndNameLeftEye, imgEyeLeft );
 		imshow( wndNameRightEye, imgEyeRight );
 	}

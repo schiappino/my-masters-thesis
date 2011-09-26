@@ -88,9 +88,12 @@ int
 	scale           = 1,
 	imIt			= 0,	// image list literator
 	z				= 10,
+	Hough_dp		= 2,
+	HoughMinDist	= 50,
+
 
 	mouthThreshold	= 0,
-	bilateralBlur	= 0,
+	bilatBlurVal	= 10,
 	eyeThreshold	= 0,
 
 	TrackbarLoVal   = 2,
@@ -114,10 +117,11 @@ const char
 	* wndNameBlur = "Blur",
 	* wndNameLeftEye = "Left eye",
 	* wndNameRightEye = "Right eye",
+	* wndNameBilateral = "Bilateral Blur",
 	* wndNameEyesExpTrans = "Eyes Exponential Transform",
 
 	* trckbarMouthThresh = "Mouth THR",
-	* trckbarBilateralBlur = "Bilatera blur",
+	* trckbarbilateralBlur = "Bilatera blur",
 	* trckbarZ = "Z",
 	* trckbarEyeThreshold = "Eyes THR";
 
@@ -183,21 +187,27 @@ void onZTrackbar( int val, void* )
 };
 void onBilateralBlur( int val, void* )
 {
-	bilateralBlur = val;
+	bilatBlurVal = val;
+};
+void onHough_dp( int val, void* )
+{
+	Hough_dp = val;
 };
 
 void InitGUI()
 {
-	int flags = CV_WINDOW_KEEPRATIO | CV_GUI_NORMAL;
+	int flags = CV_WINDOW_KEEPRATIO;
 
 	namedWindow( wndNameSrc, flags );
 	namedWindow( wndNameFace, flags );
 	namedWindow( wndNameLeftEye, flags );
 	namedWindow( wndNameRightEye, flags );
 	namedWindow( wndNameEyesExpTrans, flags );
+	namedWindow( wndNameBilateral, flags );
 
 	createTrackbar( trckbarMouthThresh, wndNameMouth, &mouthThreshold, 255, onThresholdTrackbar );
-	createTrackbar( trckbarBilateralBlur, wndNameBlur, &bilateralBlur, 31, onBilateralBlur );
+	createTrackbar( trckbarbilateralBlur, "", &bilatBlurVal, 20, onBilateralBlur );
+	createTrackbar( "Hough dp", "", &Hough_dp, 20, onHough_dp );
 	createTrackbar( trckbarEyeThreshold, "", &eyeThreshold, 255, onEyeThresholdTrackbar );
 	createTrackbar( trckbarZ, "", &z, 50, onZTrackbar );
 };
@@ -433,6 +443,27 @@ void DetectEyes()
 		exponentialOperator( imgEyes, imgEyes );
 		imshow( wndNameEyesExpTrans, imgEyes );
 
+		// --> Hough Circle transform for iris detection
+		vector<Vec3f> iris;
+		Mat imgEyesFiltered;
+
+		bilateralFilter( imgEyes, imgEyesFiltered, bilatBlurVal, bilatBlurVal*2, bilatBlurVal/2 );
+		imshow( wndNameBilateral, imgEyesFiltered );
+
+		HoughCircles( imgEyesFiltered, iris, CV_HOUGH_GRADIENT,
+			Hough_dp, HoughMinDist, 100, 100, 5, 15 );
+		for( int i = 0; i < iris.size(); ++i )
+		{
+			Point center( cvRound(iris[i][0]), cvRound(iris[i][1]) );
+			int radius = cvRound(iris[i][2]);
+
+			Mat imgEyesIris ( imgProcessed, eyesROI );
+			circle( imgEyesIris, center, radius, CV_RGB(250,0,0) );
+		}
+
+		// <-- Hough Circle transform for iris detection
+
+		#ifdef EYE_DETECT_CONNECTED_COMP
 		Scalar avgIntensityLeftEye = mean( imgEyeLeft );
 		Scalar avgIntensityRightEye = mean( imgEyeRight );
 		Scalar stdDev, avgIntensity;
@@ -448,15 +479,15 @@ void DetectEyes()
 		imgEyeLeft.copyTo( imgEyeBinaryCopy );
 		vector<vector<Point> > contours;
 		vector<Vec4i> hierarchy;
-		findContours( imgEyeBinaryCopy, contours, hierarchy, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE );
+		findContours( imgEyeBinaryCopy, contours, hierarchy,
+					  CV_RETR_LIST, CV_CHAIN_APPROX_TC89_KCOS );
 		Mat imgProcessedLeftEye ( imgProcessed, eyeLeftROI );
 		for( int i = 0; i < contours.size(); ++i )
-		{
 			drawContours( imgProcessedLeftEye, contours, i, CV_RGB(0,100,255) );
-		}
 		
 		imshow( wndNameLeftEye, imgEyeLeft );
 		imshow( wndNameRightEye, imgEyeRight );
+		#endif
 	}
 };
 
@@ -529,7 +560,7 @@ void DetectMouth()
 		Mat imgMouthHue( hls_planes[HUE_PLANE], foundMouthROI );
 		Mat imgMouthThresh ( imgMouthHue.size(), imgMouthHue.type() );
 		Mat imgBlurredMouth;
-		bilateralFilter( imgMouthHue, imgBlurredMouth, bilateralBlur, bilateralBlur*2, bilateralBlur/2 );
+		bilateralFilter( imgMouthHue, imgBlurredMouth, bilatBlurVal, bilatBlurVal*2, bilatBlurVal/2 );
 		imshow( wndNameBlur, imgBlurredMouth );
 		mouthHueAvg = mean( imgMouthHue );
 

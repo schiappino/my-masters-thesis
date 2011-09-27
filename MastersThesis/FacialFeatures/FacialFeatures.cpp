@@ -15,6 +15,8 @@
 #define _CRT_SECURE_NO_WARNINGS 1
 //#define EYES_DETECT_SINGLE_CASCADE
 //#define EYES_DETECT_MULTI_CASCADE
+//#define EYES_DETECT_HOUGH_TRANSFORM
+//#define EYES_DETECT_CONNECTED_COMP
 
 using namespace cv;
 using namespace std;
@@ -44,6 +46,7 @@ CascadeClassifier
 	cascadeFace,
 	cascadeMouth,
 	cascadeEye,
+	cascadeEye2,
 	cascadeEyeRight,
 	cascadeEyeLeft;
 
@@ -85,6 +88,7 @@ int
 	counter         = 0,
 	posRes          = 0,
 	object_size		= 0,
+	face_size		= 0,
 	scale           = 1,
 	imIt			= 0,	// image list literator
 	z				= 10,
@@ -119,6 +123,7 @@ const char
 	* wndNameRightEye = "Right eye",
 	* wndNameBilateral = "Bilateral Blur",
 	* wndNameEyesExpTrans = "Eyes Exponential Transform",
+	* wndNameEyesThresh	 = "Eyes threshold",
 
 	* trckbarMouthThresh = "Mouth THR",
 	* trckbarbilateralBlur = "Bilatera blur",
@@ -200,8 +205,9 @@ void InitGUI()
 
 	namedWindow( wndNameSrc, flags );
 	namedWindow( wndNameFace, flags );
-	namedWindow( wndNameLeftEye, flags );
-	namedWindow( wndNameRightEye, flags );
+	//namedWindow( wndNameLeftEye, flags );
+	//namedWindow( wndNameRightEye, flags );
+	//namedWindow( wndNameEyesThresh, flags );
 	namedWindow( wndNameEyesExpTrans, flags );
 	namedWindow( wndNameBilateral, flags );
 
@@ -274,13 +280,14 @@ int Init()
 	imgFileList.reserve( COLOR_FERET_DB_SIZE );
 
 	// Load list of images to container
-	loadFileList( IMMFaceDBFile );
+	loadFileList( ColorFeretDBFile );
 
 	// Initialize file list iterator 
 	imIt = imgFileList.size() - 20;
 
 	// Load cascades
 	if( !cascadeFace.load( cascadeFNameFace) )				{ printf("--(!)Error loading\n"); return -1; };
+	if( !cascadeEye.load( cascadeFNameEye ) )				{ printf("--(!)Error loading\n"); return -1; };
 	if( !cascadeEyeRight.load( cascadeFNameEyeRightSplit ) ){ printf("--(!)Error loading\n"); return -1; };
 	if( !cascadeEyeLeft.load( cascadeFNameEyeLeftSplit ) )	{ printf("--(!)Error loading\n"); return -1; };
 	if( !cascadeMouth.load( cascadeFNameMouth ) )			{ printf("--(!)Error loading\n"); return -1; };
@@ -351,6 +358,7 @@ bool DetectFaces()
 		);
 		#endif
 
+		face_size = faces[0].width;
 		return true;
 	}
 	else
@@ -377,13 +385,13 @@ void DetectEyes()
 
 		#ifdef EYES_DETECT_SINGLE_CASCADE		
 		// Here both eyes are found at the same time by single pass
-		Mat imgGrayEyesROI (imgGray, eyesROI );
 		cascadeEye.detectMultiScale(
-			imgGrayEyesROI,
+			imgGrayEyes,
 			eyes,
-			1.1,
-			5,
-			CV_HAAR_DO_CANNY_PRUNING );
+			1.3,
+			3,
+			CV_HAAR_DO_CANNY_PRUNING,
+		);
 		
 		// Setup roi on image
 		Mat imgProcessedROI (imgProcessed, eyesROI );
@@ -394,10 +402,9 @@ void DetectEyes()
 			rectangle( imgProcessedROI,
 				Point( eyes[i].x, eyes[i].y),
 				Point( eyes[i].x + eyes[i].width, eyes[i].y + eyes[i].height),
-				CV_RGB(0, 0, 0)
+				CV_RGB(100, 100, 255)
 			);
 		}
-		imshow( "Foo", imgProcessedROI );
 		#endif
 		#ifdef EYES_DETECT_MULTI_CASCADE
 		// TEMPORARY APPROACH: detecting eye pos in two passes		
@@ -443,15 +450,17 @@ void DetectEyes()
 		exponentialOperator( imgEyes, imgEyes );
 		imshow( wndNameEyesExpTrans, imgEyes );
 
+		#ifdef EYES_DETECT_HOUGH_TRANSFORM
 		// --> Hough Circle transform for iris detection
+		int irisRadiusMax = cvRound(face_size*0.05);
+		HoughMinDist = cvRound(face_size/3.0);
 		vector<Vec3f> iris;
 		Mat imgEyesFiltered;
-
 		bilateralFilter( imgEyes, imgEyesFiltered, bilatBlurVal, bilatBlurVal*2, bilatBlurVal/2 );
 		imshow( wndNameBilateral, imgEyesFiltered );
 
 		HoughCircles( imgEyesFiltered, iris, CV_HOUGH_GRADIENT,
-			Hough_dp, HoughMinDist, 100, 100, 5, 15 );
+			Hough_dp, HoughMinDist, 100, 200, 3, irisRadiusMax );
 		for( int i = 0; i < iris.size(); ++i )
 		{
 			Point center( cvRound(iris[i][0]), cvRound(iris[i][1]) );
@@ -460,10 +469,10 @@ void DetectEyes()
 			Mat imgEyesIris ( imgProcessed, eyesROI );
 			circle( imgEyesIris, center, radius, CV_RGB(250,0,0) );
 		}
-
 		// <-- Hough Circle transform for iris detection
+		#endif
 
-		#ifdef EYE_DETECT_CONNECTED_COMP
+		#ifdef EYES_DETECT_CONNECTED_COMP
 		Scalar avgIntensityLeftEye = mean( imgEyeLeft );
 		Scalar avgIntensityRightEye = mean( imgEyeRight );
 		Scalar stdDev, avgIntensity;

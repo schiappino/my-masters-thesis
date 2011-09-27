@@ -31,6 +31,7 @@ const char* cascadeFNameMouth			= "../data/cascades/haarcascade_mcs_mouth.xml";
 // ********************************** IMAGE FILES *******************************************
 const char* IMMFaceDBFile				= "../data/facedb/imm/filelist.txt";
 const char* ColorFeretDBFile			= "../data/facedb/color feret/filelist.txt";
+const char* eyeTemplateFile				= "../data/images/eye_template2.bmp";
 
 // *********************************** VIDEO FILES ******************************************
 
@@ -63,7 +64,7 @@ Scalar mouthHueAvg;
 Mat        
 	img,
 	imgRaw,
-	imgTemp,
+	imgTempl,
 	imgSrc,
 	imgGray,
 	imgThresh,
@@ -81,7 +82,8 @@ Mat
 Mat lookUpTable( 1, 256, CV_8U );
 
 vector<Mat> rgb_planes,
-			hls_planes;
+			hls_planes,
+			hsv_planes;
 
 
 int                     
@@ -94,6 +96,7 @@ int
 	z				= 10,
 	Hough_dp		= 2,
 	HoughMinDist	= 50,
+	TemplMatchMet	= 1,
 
 
 	mouthThreshold	= 0,
@@ -198,6 +201,10 @@ void onHough_dp( int val, void* )
 {
 	Hough_dp = val;
 };
+void onTemplateMatchingMet( int val, void* )
+{
+	TemplMatchMet = val;
+};
 
 void InitGUI()
 {
@@ -207,7 +214,7 @@ void InitGUI()
 	namedWindow( wndNameFace, flags );
 	//namedWindow( wndNameLeftEye, flags );
 	//namedWindow( wndNameRightEye, flags );
-	//namedWindow( wndNameEyesThresh, flags );
+	namedWindow( wndNameEyesThresh, flags );
 	namedWindow( wndNameEyesExpTrans, flags );
 	namedWindow( wndNameBilateral, flags );
 
@@ -216,6 +223,7 @@ void InitGUI()
 	createTrackbar( "Hough dp", "", &Hough_dp, 20, onHough_dp );
 	createTrackbar( trckbarEyeThreshold, "", &eyeThreshold, 255, onEyeThresholdTrackbar );
 	createTrackbar( trckbarZ, "", &z, 50, onZTrackbar );
+	createTrackbar( "Templ Match Met", "", &TemplMatchMet, 5, onTemplateMatchingMet );
 };
 
 void handleKeyboard( char c )
@@ -325,6 +333,13 @@ int Init()
 		return -1;	
 	}
 	
+	// Load eye template
+	imgTempl = imread( eyeTemplateFile, CV_LOAD_IMAGE_GRAYSCALE );
+	if( !imgTempl.data )
+	{
+		cout << "Template file not loaded" << endl;
+		return -1;
+	}
 
 	return 0;
 };
@@ -363,6 +378,65 @@ bool DetectFaces()
 	}
 	else
 		return false;
+};
+
+void EyeTemplateMatching( Mat src, Mat disp, Mat templ)
+{
+	Mat result;
+	/// Create the result matrix
+	int result_cols =  src.cols - templ.cols + 1;
+	int result_rows = src.rows - templ.rows + 1;   
+
+	result.create( result_cols, result_rows, CV_32FC1 );
+
+	/// Do the Matching and Normalize
+	matchTemplate( src, templ, result, TemplMatchMet );
+	normalize( result, result, 0, 1, NORM_MINMAX, -1, Mat() );
+
+	/// Localizing the best match with minMaxLoc
+	double minVal, maxVal; 
+	Point minLoc, maxLoc, matchLoc;
+
+	minMaxLoc( result, &minVal, &maxVal, &minLoc, &maxLoc, Mat() );
+
+	/// For SQDIFF and SQDIFF_NORMED, the best matches are lower values. 
+	/// For all the other methods, the higher the better
+	if( TemplMatchMet  == CV_TM_SQDIFF || TemplMatchMet == CV_TM_SQDIFF_NORMED )
+	{ matchLoc = minLoc; }
+	else  
+	{ matchLoc = maxLoc; }
+
+	/// Show me what you got
+	rectangle( disp, matchLoc, 
+		Point( matchLoc.x + templ.cols , matchLoc.y + templ.rows ), 
+		Scalar::all(180), 1, 8, 0 ); 
+	
+	rectangle( result, matchLoc, 
+		Point( matchLoc.x + templ.cols , matchLoc.y + templ.rows ), 
+		Scalar::all(180), 1, 8, 0 ); 
+
+	imshow("Template Matching result", result );
+
+};
+
+void ColorSegment( vector<Mat> color_planes, Rect roi )
+{
+	Mat imgHue ( color_planes[0], roi ),
+		imgSat ( color_planes[2], roi ),
+		imgHueRes, imgSatRes, ImgFinalRes;
+
+	inRange( imgHue, 0, 50, imgHueRes );
+	imshow( "Skin Hue" , imgHueRes );
+	inRange( imgSat, 0, 30, imgSatRes );
+	imshow( "Skin Sat" , imgSatRes );
+	bitwise_or( imgSatRes, imgHueRes, ImgFinalRes );
+
+		
+	Mat kernel = getStructuringElement( MORPH_ELLIPSE, Size(3, 3) );
+	morphologyEx( ImgFinalRes, ImgFinalRes, MORPH_CLOSE, kernel, Point(1,1), 1 );
+	morphologyEx( ImgFinalRes, ImgFinalRes, MORPH_OPEN, kernel, Point(1,1), 2 );
+
+	imshow( "Hue and Sat overlapped", ImgFinalRes );
 };
 
 void DetectEyes()
@@ -449,6 +523,28 @@ void DetectEyes()
 		bitwise_not( imgEyes, imgEyes );
 		exponentialOperator( imgEyes, imgEyes );
 		imshow( wndNameEyesExpTrans, imgEyes );
+		
+		Mat kernel = getStructuringElement( MORPH_ELLIPSE, Size(3, 3) );
+		morphologyEx( imgEyes, imgEyes, MORPH_CLOSE, kernel, Point(1,1), 1 );
+		morphologyEx( imgEyes, imgEyes, MORPH_OPEN, kernel, Point(1,1), 1 );
+		threshold( imgEyes, imgEyes, eyeThreshold, 255, THRESH_BINARY );
+		imshow( wndNameEyesThresh, imgEyes );
+
+		Mat imgProcessedLeftEye ( imgProcessed, eyeLeftROI ),
+			imgProcessedRightEye ( imgProcessed, eyeRightROI );
+		EyeTemplateMatching( imgEyeLeft, imgProcessedLeftEye, imgTempl );
+		EyeTemplateMatching( imgEyeRight, imgProcessedRightEye, imgTempl );
+
+		Mat imgEyesHue ( hls_planes[0], eyesROI );
+		imshow( "Hue: eyes", imgEyesHue );
+
+		Mat imgEyesSat ( hls_planes[2], eyesROI );
+		imshow( "Sat: eyes", imgEyesSat );
+
+		Mat imgEyesSat2 ( hsv_planes[1], eyesROI );
+		imshow ( "Sat2: eyes", imgEyesSat2 );
+
+		ColorSegment( hls_planes, eyesROI );
 
 		#ifdef EYES_DETECT_HOUGH_TRANSFORM
 		// --> Hough Circle transform for iris detection
@@ -587,10 +683,12 @@ void ProcessAlgorithm()
 	// Convert image to grayscale and HLS colour space
 	cvtColor( imgSrc, imgGray, CV_RGB2GRAY );
 	cvtColor( imgSrc, imgHLS, CV_RGB2HLS_FULL );
+	cvtColor( imgSrc, imgHSV, CV_RGB2HSV_FULL );
 
 	// Split multichannel images into separate planes
 	split( imgSrc, rgb_planes );
 	split( imgHLS, hls_planes );
+	split( imgHSV, hsv_planes );
 
 	if( DetectFaces() )
 	{

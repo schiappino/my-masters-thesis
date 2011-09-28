@@ -104,6 +104,7 @@ int
 	mouthThreshold	= 0,
 	bilatBlurVal	= 10,
 	eyeThreshold	= 0,
+	eyebrowThreshold = 0,
 
 	TrackbarLoVal   = 2,
 	TrackbarHiVal	= 100,
@@ -212,10 +213,14 @@ void onTemplateMatchingMet( int val, void* )
 {
 	TemplMatchMet = val;
 };
+void onEyebrowThresh( int val, void* )
+{
+	eyebrowThreshold = val;
+};
 
 void InitGUI()
 {
-	int flags = CV_WINDOW_KEEPRATIO;
+	int flags = CV_WINDOW_KEEPRATIO | CV_GUI_NORMAL;
 
 	namedWindow( wndNameSrc, flags );
 	namedWindow( wndNameFace, flags );
@@ -232,6 +237,7 @@ void InitGUI()
 	createTrackbar( trckbarEyeThreshold, "", &eyeThreshold, 255, onEyeThresholdTrackbar );
 	createTrackbar( trckbarZ, "", &z, 50, onZTrackbar );
 	createTrackbar( "Templ Match Met", "", &TemplMatchMet, 5, onTemplateMatchingMet );
+	createTrackbar( "Eyebrow THR", "", &eyebrowThreshold, 255, onEyebrowThresh );
 };
 
 void handleKeyboard( char c )
@@ -629,15 +635,12 @@ void DetectEyebrows()
 
 		Mat imgEybrows		( rgb_planes[0], eyesbrowsROI ),
 			imgEyebrowLeft	( rgb_planes[0], eyebrowLeftROI ),
-			imgEyebrowRight	( rgb_planes[0], eyebrowRightROI );
-
-		Mat	imgEyebrowLeftGradientY,
-			imgEyebrowRightGradientY,
-			imgEyebrowLeftGradientYABS,
-			imgEyebrowRightGradientYABS;
+			imgEyebrowRight	( rgb_planes[0], eyebrowRightROI ),
+			imgGrayEyebrows ( imgGray,		 eyesbrowsROI );
 
 		equalizeHist( imgEyebrowLeft, imgEyebrowLeft );
 		equalizeHist( imgEyebrowRight, imgEyebrowRight );
+		equalizeHist( imgGrayEyebrows, imgGrayEyebrows );
 
 		bitwise_not( imgEyebrowLeft, imgEyebrowLeft );
 		bitwise_not( imgEyebrowRight, imgEyebrowRight );
@@ -645,19 +648,32 @@ void DetectEyebrows()
 		exponentialOperator( imgEyebrowLeft, imgEyebrowLeft );
 		exponentialOperator( imgEyebrowRight, imgEyebrowRight );
 
-		GaussianBlur( imgEyebrowLeft,imgEyebrowLeft, Size(5,5), 5 );
-		imshow( "Left eye gaussian", imgEyebrowLeft );
+		Mat leftSmoothed, rightSmoothed, leftThresh, rightThresh, grayThresh;
+		int b = bilatBlurVal;
+		bilateralFilter( imgEyebrowLeft, leftSmoothed, b, 2*b, b/2. );
+		bilateralFilter( imgEyebrowRight, rightSmoothed, b, 2*b, b/2. );
 
-		Sobel( imgEyebrowLeft, imgEyebrowLeftGradientY, CV_16S, 0, 1, 3 );
-		convertScaleAbs( imgEyebrowLeftGradientY, imgEyebrowLeftGradientYABS );
+		Mat kernel = getStructuringElement( CV_SHAPE_ELLIPSE, Size(3,3) );
+		morphologyEx( leftSmoothed, leftSmoothed,	CV_MOP_CLOSE,	kernel, Point(-1,-1), 1 );
+		morphologyEx( leftSmoothed, leftSmoothed,	CV_MOP_OPEN,	kernel, Point(-1,-1), 1 );
+		morphologyEx( rightSmoothed, rightSmoothed, CV_MOP_CLOSE,	kernel, Point(-1,-1), 1 );
+		morphologyEx( rightSmoothed, rightSmoothed, CV_MOP_OPEN,	kernel, Point(-1,-1), 1 );
 
-		Sobel( imgEyebrowLeft, imgEyebrowRightGradientY, CV_16S, 0, 1, CV_SCHARR );
-		convertScaleAbs( imgEyebrowRightGradientY, imgEyebrowRightGradientYABS );
+		threshold( leftSmoothed, leftThresh, eyebrowThreshold, 255, CV_THRESH_BINARY );
+		threshold( rightSmoothed, rightThresh, eyebrowThreshold, 255, CV_THRESH_BINARY );
+		threshold( imgGrayEyebrows, grayThresh, eyebrowThreshold, 255, CV_THRESH_BINARY );
 
 		imshow( "Eyebrow left", imgEyebrowLeft );
-		imshow( "Eyebrow left sobel", imgEyebrowLeftGradientYABS );
-		imshow( "Eyebrow left scharr", imgEyebrowRightGradientYABS );
-		//imshow( "Eyebrow right", imgEyebrowRight );
+		imshow( "Eyebrow right", imgEyebrowRight );
+
+		imshow( "Left smoothed", leftSmoothed );
+		imshow( "Right smoothed", rightSmoothed );
+
+		imshow( "Left thr", leftThresh );
+		imshow( "Right thr", rightThresh );
+
+		imshow( "Eyebrows gray", imgGrayEyebrows );
+		imshow( "Eyebrows gray thr", grayThresh );
 	}
 };
 
@@ -771,7 +787,10 @@ int main(int argc, char** argv )
 		{
 			videoCapture >> imgSrc;
 			if( imgSrc.empty() )
+			{
 				videoCapture.set( CV_CAP_PROP_POS_AVI_RATIO, 0 );
+				videoCapture >> imgSrc;
+			}
 		}
 		// Show current image or frame
 		imshow( wndNameSrc, imgSrc );

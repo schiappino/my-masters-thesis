@@ -17,6 +17,7 @@
 //#define EYES_DETECT_MULTI_CASCADE
 //#define EYES_DETECT_HOUGH_TRANSFORM
 //#define EYES_DETECT_CONNECTED_COMP
+//#define EYES_TEMPLATE_MATCH_DEBUG
 
 using namespace cv;
 using namespace std;
@@ -429,7 +430,9 @@ void EyeTemplateMatching( Mat src, Mat disp, Mat templ, int irisRadius)
 	circle( disp, center, irisRadius, CV_RGB(0,100,255), 2 );
 	circle( result, center, irisRadius, CV_RGB(0,100,255), 2 );
 
+	#ifdef EYES_TEMPLATE_MATCH_DEBUG
 	imshow( wndNameTemplRes, result );
+	#endif
 };
 
 void ColorSegment( vector<Mat> color_planes, Rect roi )
@@ -624,8 +627,18 @@ void DetectEyebrows()
 		Rect eyebrowRightROI = Rect( (int)(faces[0].x + 0.5*faces[0].width),(int)(faces[0].y + 0.2*faces[0].height), 
 									 (int)(0.4*faces[0].width),				(int)(0.2*faces[0].height) );
 
-		Mat imgEyebrowLeft ( imgGray, eyebrowLeftROI ),
-			imgEyebrowRight( imgGray, eyebrowRightROI );
+		Mat imgEybrows		( rgb_planes[0], eyesbrowsROI ),
+			imgEyebrowLeft	( rgb_planes[0], eyebrowLeftROI ),
+			imgEyebrowRight	( rgb_planes[0], eyebrowRightROI );
+
+		equalizeHist( imgEyebrowLeft, imgEyebrowLeft );
+		equalizeHist( imgEyebrowRight, imgEyebrowRight );
+
+		bitwise_not( imgEyebrowLeft, imgEyebrowLeft );
+		bitwise_not( imgEyebrowRight, imgEyebrowRight );
+
+		exponentialOperator( imgEyebrowLeft, imgEyebrowLeft );
+		exponentialOperator( imgEyebrowRight, imgEyebrowRight );
 
 		imshow( "Eyebrow left", imgEyebrowLeft );
 		imshow( "Eyebrow right", imgEyebrowRight );

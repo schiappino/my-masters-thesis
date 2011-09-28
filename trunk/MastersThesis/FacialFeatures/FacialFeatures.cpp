@@ -31,17 +31,18 @@ const char* cascadeFNameMouth			= "../data/cascades/haarcascade_mcs_mouth.xml";
 // ********************************** IMAGE FILES *******************************************
 const char* IMMFaceDBFile				= "../data/facedb/imm/filelist.txt";
 const char* ColorFeretDBFile			= "../data/facedb/color feret/filelist.txt";
-const char* eyeTemplateFile				= "../data/images/eye_template2.bmp";
+const char* eyeTemplateFile				= "../data/images/eye_template3.bmp";
 
 // *********************************** VIDEO FILES ******************************************
-
+const char* VideoSequences				= "../data/video sequences/filelist.txt";
+const char* VideoSequence1				= "../data/video sequences/VIDEO0021.3gp";
 
 // ****************************** GLOBALS ***************************************************
-const int PROGRAM_MODE = 1;
+const int PROGRAM_MODE = 2;
 
 const double K_EXP_OPERATOR = 0.0217304452751310829264530948549876073716129212732431841605;
 
-CvCapture* capture = NULL;
+VideoCapture videoCapture;
 
 CascadeClassifier
 	cascadeFace,
@@ -127,6 +128,7 @@ const char
 	* wndNameBilateral = "Bilateral Blur",
 	* wndNameEyesExpTrans = "Eyes Exponential Transform",
 	* wndNameEyesThresh	 = "Eyes threshold",
+	* wndNameTemplRes = "Template Match Res",
 
 	* trckbarMouthThresh = "Mouth THR",
 	* trckbarbilateralBlur = "Bilatera blur",
@@ -216,7 +218,8 @@ void InitGUI()
 	//namedWindow( wndNameRightEye, flags );
 	namedWindow( wndNameEyesThresh, flags );
 	namedWindow( wndNameEyesExpTrans, flags );
-	namedWindow( wndNameBilateral, flags );
+	//namedWindow( wndNameBilateral, flags );
+	namedWindow( wndNameTemplRes, flags );
 
 	createTrackbar( trckbarMouthThresh, wndNameMouth, &mouthThreshold, 255, onThresholdTrackbar );
 	createTrackbar( trckbarbilateralBlur, "", &bilatBlurVal, 20, onBilateralBlur );
@@ -324,8 +327,18 @@ int Init()
 	}
 	else if( PROGRAM_MODE == 2 )
 	{
-		cout << "Not implemented" << endl;
-		return -1;
+		videoCapture.open( VideoSequence1 );
+		if( !videoCapture.isOpened() )
+		{
+			cout << "Could not load video file" << endl;
+			return -1;
+		}
+		videoCapture >> imgSrc;
+		if( imgSrc.empty() )
+		{
+			cout << "Could not get first frame from capture" << endl;
+			return -1;
+		}
 	}
 	else if( PROGRAM_MODE == 3 )
 	{
@@ -405,18 +418,22 @@ void EyeTemplateMatching( Mat src, Mat disp, Mat templ)
 	{ matchLoc = minLoc; }
 	else  
 	{ matchLoc = maxLoc; }
+	
+	Point center = Point( matchLoc.x + cvRound(templ.cols/2.0), matchLoc.y + cvRound(templ.rows/2.0));
+	int radius = templ.rows;
 
 	/// Show me what you got
-	rectangle( disp, matchLoc, 
+	circle( disp, center, radius, CV_RGB(0,100,255), 2 );
+	circle( result, center, radius, CV_RGB(0,100,255), 2 );
+	/*rectangle( disp, matchLoc, 
 		Point( matchLoc.x + templ.cols , matchLoc.y + templ.rows ), 
 		Scalar::all(180), 1, 8, 0 ); 
 	
 	rectangle( result, matchLoc, 
 		Point( matchLoc.x + templ.cols , matchLoc.y + templ.rows ), 
-		Scalar::all(180), 1, 8, 0 ); 
+		Scalar::all(180), 1, 8, 0 ); */
 
-	imshow("Template Matching result", result );
-
+	imshow( wndNameTemplRes, result );
 };
 
 void ColorSegment( vector<Mat> color_planes, Rect roi )
@@ -464,7 +481,7 @@ void DetectEyes()
 			eyes,
 			1.3,
 			3,
-			CV_HAAR_DO_CANNY_PRUNING,
+			CV_HAAR_DO_CANNY_PRUNING
 		);
 		
 		// Setup roi on image
@@ -524,27 +541,27 @@ void DetectEyes()
 		exponentialOperator( imgEyes, imgEyes );
 		imshow( wndNameEyesExpTrans, imgEyes );
 		
-		Mat kernel = getStructuringElement( MORPH_ELLIPSE, Size(3, 3) );
-		morphologyEx( imgEyes, imgEyes, MORPH_CLOSE, kernel, Point(1,1), 1 );
-		morphologyEx( imgEyes, imgEyes, MORPH_OPEN, kernel, Point(1,1), 1 );
-		threshold( imgEyes, imgEyes, eyeThreshold, 255, THRESH_BINARY );
-		imshow( wndNameEyesThresh, imgEyes );
+		//Mat kernel = getStructuringElement( MORPH_ELLIPSE, Size(3, 3) );
+		//morphologyEx( imgEyes, imgEyes, MORPH_CLOSE, kernel, Point(1,1), 1 );
+		//morphologyEx( imgEyes, imgEyes, MORPH_OPEN, kernel, Point(1,1), 1 );
+		//threshold( imgEyes, imgEyes, eyeThreshold, 255, THRESH_BINARY );
+		//imshow( wndNameEyesThresh, imgEyes );
 
 		Mat imgProcessedLeftEye ( imgProcessed, eyeLeftROI ),
 			imgProcessedRightEye ( imgProcessed, eyeRightROI );
 		EyeTemplateMatching( imgEyeLeft, imgProcessedLeftEye, imgTempl );
 		EyeTemplateMatching( imgEyeRight, imgProcessedRightEye, imgTempl );
 
-		Mat imgEyesHue ( hls_planes[0], eyesROI );
-		imshow( "Hue: eyes", imgEyesHue );
+		//Mat imgEyesHue ( hls_planes[0], eyesROI );
+		//imshow( "Hue: eyes", imgEyesHue );
 
-		Mat imgEyesSat ( hls_planes[2], eyesROI );
-		imshow( "Sat: eyes", imgEyesSat );
+		//Mat imgEyesSat ( hls_planes[2], eyesROI );
+		//imshow( "Sat: eyes", imgEyesSat );
 
-		Mat imgEyesSat2 ( hsv_planes[1], eyesROI );
-		imshow ( "Sat2: eyes", imgEyesSat2 );
+		//Mat imgEyesSat2 ( hsv_planes[1], eyesROI );
+		//imshow ( "Sat2: eyes", imgEyesSat2 );
 
-		ColorSegment( hls_planes, eyesROI );
+		//ColorSegment( hls_planes, eyesROI );
 
 		#ifdef EYES_DETECT_HOUGH_TRANSFORM
 		// --> Hough Circle transform for iris detection
@@ -706,6 +723,12 @@ int main(int argc, char** argv )
 
 	while( !finish )
 	{
+		if( PROGRAM_MODE == 2 )
+		{
+			videoCapture >> imgSrc;
+			if( imgSrc.empty() )
+				videoCapture.set( CV_CAP_PROP_POS_AVI_RATIO, 0 );
+		}
 		// Show current image or frame
 		imshow( wndNameSrc, imgSrc );
 

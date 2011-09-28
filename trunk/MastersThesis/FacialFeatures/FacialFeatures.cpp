@@ -719,6 +719,7 @@ void ProcessAlgorithm()
 
 	// Split multichannel images into separate planes
 	split( imgSrc, rgb_planes );
+	split( imgSrc, hls_planes );
 
 	if( DetectFaces() )
 	{

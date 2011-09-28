@@ -177,12 +177,9 @@ void displayStats()
 	else if( PROGRAM_MODE == 2 )
 	{
 		// Show current frame no.
-		sprintf( text, "Current vid pos %d%", cvRound(videoCapture.get( CV_CAP_PROP_POS_AVI_RATIO)*100));
+		sprintf( text, "Vid pos %d%", cvRound(videoCapture.get( CV_CAP_PROP_POS_AVI_RATIO)*100));
 		putTextWithShadow( imgProcessed, text, Point(5, 75));
 	}
-
-	sprintf( text, "avg hue %d", mouthHueAvg[0]);
-	putTextWithShadow( imgProcessed, text, Point(5, 95) );
 }
 
 inline void exponentialOperator( Mat src, Mat dst )

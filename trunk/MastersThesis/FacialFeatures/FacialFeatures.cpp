@@ -6,6 +6,8 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
+#pragma _CRT_SECURE_NO_WARNINGS
+
 #define HUE_PLANE 0
 #define COLOR_FERET_DB_SIZE 4000
 #define IMM_DB_SIZE	250
@@ -97,7 +99,7 @@ int
 	z				= 10,
 	Hough_dp		= 2,
 	HoughMinDist	= 50,
-	TemplMatchMet	= 1,
+	TemplMatchMet	= 4,
 
 
 	mouthThreshold	= 0,
@@ -158,11 +160,11 @@ inline string getCurentFileName( string filePath )
 void displayStats()
 {
 	// Show image size
-	sprintf( text, "%dx%d", imgSrc.size().width, imgSrc.size().height );
+	sprintf_s( text, 256, "%dx%d", imgSrc.size().width, imgSrc.size().height );
 	putTextWithShadow( imgProcessed, text, Point(5, 35) );
 
 	// Show FPS
-	sprintf( text, "FPS %2.0f", 1000/exec_time);
+	sprintf_s( text, 256, "FPS %2.0f", 1000/exec_time);
 	putTextWithShadow( imgProcessed, text, Point(5, 55) );
 
 	// When working on files 
@@ -171,13 +173,13 @@ void displayStats()
 		// Show current file name 
 		putTextWithShadow( imgProcessed, getCurentFileName( imgFileList.at(imIt) ).c_str(), Point(5, 75));
 
-		sprintf( text, "Current Image %d", imIt);
+		sprintf_s( text, 256, "Current Image %d", imIt);
 		putTextWithShadow( imgProcessed, text, Point(5, 115) );
 	}
 	else if( PROGRAM_MODE == 2 )
 	{
 		// Show current frame no.
-		sprintf( text, "Vid pos %d%", cvRound(videoCapture.get( CV_CAP_PROP_POS_AVI_RATIO)*100));
+		sprintf_s( text, 256, "Video pos %d%%", cvRound(videoCapture.get( CV_CAP_PROP_POS_AVI_RATIO)*100));
 		putTextWithShadow( imgProcessed, text, Point(5, 75));
 	}
 }
@@ -397,7 +399,7 @@ bool DetectFaces()
 		return false;
 };
 
-void EyeTemplateMatching( Mat src, Mat disp, Mat templ)
+void EyeTemplateMatching( Mat src, Mat disp, Mat templ, int irisRadius)
 {
 	Mat result;
 	/// Create the result matrix
@@ -424,11 +426,10 @@ void EyeTemplateMatching( Mat src, Mat disp, Mat templ)
 	{ matchLoc = maxLoc; }
 	
 	Point center = Point( matchLoc.x + cvRound(templ.cols/2.0), matchLoc.y + cvRound(templ.rows/2.0));
-	int radius = templ.rows;
 
 	/// Show me what you got
-	circle( disp, center, radius, CV_RGB(0,100,255), 2 );
-	circle( result, center, radius, CV_RGB(0,100,255), 2 );
+	circle( disp, center, irisRadius, CV_RGB(0,100,255), 2 );
+	circle( result, center, irisRadius, CV_RGB(0,100,255), 2 );
 	/*rectangle( disp, matchLoc, 
 		Point( matchLoc.x + templ.cols , matchLoc.y + templ.rows ), 
 		Scalar::all(180), 1, 8, 0 ); 
@@ -465,6 +466,9 @@ void DetectEyes()
 	// Start detecting only if face is found
 	if( faces.size() )
 	{
+		// Iris is typically 7% of face size
+		int irisRadiusMax = cvRound(face_size*0.04);
+
 		Rect eyesROI	 = Rect( faces[0].x,							(int)(faces[0].y + 0.2*faces[0].height), 
 								 faces[0].width,						(int)(0.4*faces[0].height) );
 
@@ -553,8 +557,8 @@ void DetectEyes()
 
 		Mat imgProcessedLeftEye ( imgProcessed, eyeLeftROI ),
 			imgProcessedRightEye ( imgProcessed, eyeRightROI );
-		EyeTemplateMatching( imgEyeLeft, imgProcessedLeftEye, imgTempl );
-		EyeTemplateMatching( imgEyeRight, imgProcessedRightEye, imgTempl );
+		EyeTemplateMatching( imgEyeLeft, imgProcessedLeftEye, imgTempl, irisRadiusMax );
+		EyeTemplateMatching( imgEyeRight, imgProcessedRightEye, imgTempl, irisRadiusMax );
 
 		//Mat imgEyesHue ( hls_planes[0], eyesROI );
 		//imshow( "Hue: eyes", imgEyesHue );
@@ -569,7 +573,6 @@ void DetectEyes()
 
 		#ifdef EYES_DETECT_HOUGH_TRANSFORM
 		// --> Hough Circle transform for iris detection
-		int irisRadiusMax = cvRound(face_size*0.05);
 		HoughMinDist = cvRound(face_size/3.0);
 		vector<Vec3f> iris;
 		Mat imgEyesFiltered;

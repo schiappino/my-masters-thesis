@@ -6,8 +6,6 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
-#pragma _CRT_SECURE_NO_WARNINGS
-
 #define HUE_PLANE 0
 #define COLOR_FERET_DB_SIZE 4000
 #define IMM_DB_SIZE	250
@@ -37,7 +35,7 @@ const char* eyeTemplateFile				= "../data/images/eye_template3.bmp";
 
 // *********************************** VIDEO FILES ******************************************
 const char* VideoSequences				= "../data/video sequences/filelist.txt";
-const char* VideoSequence1				= "../data/video sequences/VIDEO0021.3gp";
+const char* VideoSequence1				= "../data/video sequences/VIDEO0020.3gp";
 
 // ****************************** GLOBALS ***************************************************
 const int PROGRAM_MODE = 2;
@@ -222,10 +220,10 @@ void InitGUI()
 	namedWindow( wndNameFace, flags );
 	//namedWindow( wndNameLeftEye, flags );
 	//namedWindow( wndNameRightEye, flags );
-	namedWindow( wndNameEyesThresh, flags );
-	namedWindow( wndNameEyesExpTrans, flags );
+	//namedWindow( wndNameEyesThresh, flags );
+	//namedWindow( wndNameEyesExpTrans, flags );
 	//namedWindow( wndNameBilateral, flags );
-	namedWindow( wndNameTemplRes, flags );
+	//namedWindow( wndNameTemplRes, flags );
 
 	createTrackbar( trckbarMouthThresh, wndNameMouth, &mouthThreshold, 255, onThresholdTrackbar );
 	createTrackbar( trckbarbilateralBlur, "", &bilatBlurVal, 20, onBilateralBlur );
@@ -430,13 +428,6 @@ void EyeTemplateMatching( Mat src, Mat disp, Mat templ, int irisRadius)
 	/// Show me what you got
 	circle( disp, center, irisRadius, CV_RGB(0,100,255), 2 );
 	circle( result, center, irisRadius, CV_RGB(0,100,255), 2 );
-	/*rectangle( disp, matchLoc, 
-		Point( matchLoc.x + templ.cols , matchLoc.y + templ.rows ), 
-		Scalar::all(180), 1, 8, 0 ); 
-	
-	rectangle( result, matchLoc, 
-		Point( matchLoc.x + templ.cols , matchLoc.y + templ.rows ), 
-		Scalar::all(180), 1, 8, 0 ); */
 
 	imshow( wndNameTemplRes, result );
 };
@@ -467,7 +458,7 @@ void DetectEyes()
 	if( faces.size() )
 	{
 		// Iris is typically 7% of face size
-		int irisRadiusMax = cvRound(face_size*0.04);
+		int irisRadiusMax = cvRound(face_size*0.03);
 
 		Rect eyesROI	 = Rect( faces[0].x,							(int)(faces[0].y + 0.2*faces[0].height), 
 								 faces[0].width,						(int)(0.4*faces[0].height) );
@@ -621,7 +612,25 @@ void DetectEyes()
 };
 
 void DetectEyebrows()
-{};
+{
+	if( faces.size() )
+	{
+		Rect eyesbrowsROI	 = Rect( faces[0].x,							(int)(faces[0].y + 0.2*faces[0].height), 
+									 faces[0].width,						(int)(0.2*faces[0].height) );
+
+		Rect eyebrowLeftROI	 = Rect( (int)(faces[0].x + 0.1*faces[0].width),(int)(faces[0].y + 0.2*faces[0].height), 
+									 (int)(0.4*faces[0].width),				(int)(0.2*faces[0].height) );
+
+		Rect eyebrowRightROI = Rect( (int)(faces[0].x + 0.5*faces[0].width),(int)(faces[0].y + 0.2*faces[0].height), 
+									 (int)(0.4*faces[0].width),				(int)(0.2*faces[0].height) );
+
+		Mat imgEyebrowLeft ( imgGray, eyebrowLeftROI ),
+			imgEyebrowRight( imgGray, eyebrowRightROI );
+
+		imshow( "Eyebrow left", imgEyebrowLeft );
+		imshow( "Eyebrow right", imgEyebrowRight );
+	}
+};
 
 void DetectMouth()
 {
@@ -707,17 +716,15 @@ void ProcessAlgorithm()
 	// Convert image to grayscale and HLS colour space
 	cvtColor( imgSrc, imgGray, CV_RGB2GRAY );
 	cvtColor( imgSrc, imgHLS, CV_RGB2HLS_FULL );
-	cvtColor( imgSrc, imgHSV, CV_RGB2HSV_FULL );
 
 	// Split multichannel images into separate planes
 	split( imgSrc, rgb_planes );
-	split( imgHLS, hls_planes );
-	split( imgHSV, hsv_planes );
 
 	if( DetectFaces() )
 	{
-		DetectEyes();
+		//DetectEyes();
 		//DetectMouth();
+		DetectEyebrows();
 	}
 	imshow( wndNameFace, imgProcessed );
 	return;

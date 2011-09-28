@@ -631,6 +631,11 @@ void DetectEyebrows()
 			imgEyebrowLeft	( rgb_planes[0], eyebrowLeftROI ),
 			imgEyebrowRight	( rgb_planes[0], eyebrowRightROI );
 
+		Mat	imgEyebrowLeftGradientY,
+			imgEyebrowRightGradientY,
+			imgEyebrowLeftGradientYABS,
+			imgEyebrowRightGradientYABS;
+
 		equalizeHist( imgEyebrowLeft, imgEyebrowLeft );
 		equalizeHist( imgEyebrowRight, imgEyebrowRight );
 
@@ -640,8 +645,19 @@ void DetectEyebrows()
 		exponentialOperator( imgEyebrowLeft, imgEyebrowLeft );
 		exponentialOperator( imgEyebrowRight, imgEyebrowRight );
 
+		GaussianBlur( imgEyebrowLeft,imgEyebrowLeft, Size(5,5), 5 );
+		imshow( "Left eye gaussian", imgEyebrowLeft );
+
+		Sobel( imgEyebrowLeft, imgEyebrowLeftGradientY, CV_16S, 0, 1, 3 );
+		convertScaleAbs( imgEyebrowLeftGradientY, imgEyebrowLeftGradientYABS );
+
+		Sobel( imgEyebrowLeft, imgEyebrowRightGradientY, CV_16S, 0, 1, CV_SCHARR );
+		convertScaleAbs( imgEyebrowRightGradientY, imgEyebrowRightGradientYABS );
+
 		imshow( "Eyebrow left", imgEyebrowLeft );
-		imshow( "Eyebrow right", imgEyebrowRight );
+		imshow( "Eyebrow left sobel", imgEyebrowLeftGradientYABS );
+		imshow( "Eyebrow left scharr", imgEyebrowRightGradientYABS );
+		//imshow( "Eyebrow right", imgEyebrowRight );
 	}
 };
 

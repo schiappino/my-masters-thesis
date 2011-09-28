@@ -108,7 +108,8 @@ int
 	TrackbarHiVal	= 100,
 	TrackbarMaxVal	= 255;
 
-bool finish = false;
+bool finish = false,
+	 pause	= false;
 
 double          
 	fps = 0, 
@@ -169,13 +170,19 @@ void displayStats()
 	{
 		// Show current file name 
 		putTextWithShadow( imgProcessed, getCurentFileName( imgFileList.at(imIt) ).c_str(), Point(5, 75));
+
+		sprintf( text, "Current Image %d", imIt);
+		putTextWithShadow( imgProcessed, text, Point(5, 115) );
+	}
+	else if( PROGRAM_MODE == 2 )
+	{
+		// Show current frame no.
+		sprintf( text, "Current vid pos %d%", cvRound(videoCapture.get( CV_CAP_PROP_POS_AVI_RATIO)*100));
+		putTextWithShadow( imgProcessed, text, Point(5, 75));
 	}
 
 	sprintf( text, "avg hue %d", mouthHueAvg[0]);
 	putTextWithShadow( imgProcessed, text, Point(5, 95) );
-
-	sprintf( text, "Current Image %d", imIt);
-	putTextWithShadow( imgProcessed, text, Point(5, 115) );
 }
 
 inline void exponentialOperator( Mat src, Mat dst )
@@ -232,7 +239,7 @@ void InitGUI()
 void handleKeyboard( char c )
 {
 	if( c == 27 ) finish = true;		// esc key pressed
-	//else if( c == 112 ) pause^= true;	// p key pressed
+	else if( c == 112 ) pause^= true;	// p key pressed
 	else if( c == 110 ) ++imIt;			// n key pressed
 	else if( c == 98 ) --imIt;			// b key pressed
 	else if( c == 109 ) imIt += 10;		// m key pressed
@@ -723,7 +730,7 @@ int main(int argc, char** argv )
 
 	while( !finish )
 	{
-		if( PROGRAM_MODE == 2 )
+		if( PROGRAM_MODE == 2 && !pause )
 		{
 			videoCapture >> imgSrc;
 			if( imgSrc.empty() )

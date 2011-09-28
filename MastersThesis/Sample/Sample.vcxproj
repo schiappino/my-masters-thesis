@@ -10,9 +10,6 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="D:\OpenCV\src\opencv\samples\cpp\tutorial_code\Histograms_Matching\MatchTemplate_Demo.cpp" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{42A6D746-A087-4379-87A3-FCBFB823A06D}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>

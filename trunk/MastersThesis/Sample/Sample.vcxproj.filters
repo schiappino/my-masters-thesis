@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="videosample.cpp">
+    <ClCompile Include="SimpleBlobDetecter_demo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

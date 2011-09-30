@@ -34,7 +34,7 @@ const char* cascadeFNameMouth			= "../data/cascades/haarcascade_mcs_mouth.xml";
 // ********************************** IMAGE FILES *******************************************
 const char* IMMFaceDBFile				= "../data/facedb/imm/filelist.txt";
 const char* ColorFeretDBFile			= "../data/facedb/color feret/filelist.txt";
-const char* eyeTemplateFile				= "../data/images/eye_template3.bmp";
+const char* eyeTemplateFile				= "../data/images/eye_template4.bmp";
 
 // *********************************** VIDEO FILES ******************************************
 const char* VideoSequences				= "../data/video sequences/filelist.txt";
@@ -454,14 +454,12 @@ void BlobDetector( Mat src )
 	Mat out;
 	vector<KeyPoint> keyPoints;
 
+	blobDetector.detect( src, keyPoints );
+	drawKeypoints( src, keyPoints, out, CV_RGB(0,255,0), DrawMatchesFlags::DRAW_RICH_KEYPOINTS );
+	cout << "DEBUG Keypoints " << keyPoints.size() << endl;
 
-	
- 		blobDetector.detect( src, keyPoints );
-		drawKeypoints( src, keyPoints, out, CV_RGB(0,255,0), DrawMatchesFlags::DRAW_RICH_KEYPOINTS );
-		cout << "Keypoints " << keyPoints.size() << endl;
-	
-		imshow( wndNameBlobs, out );
-		//waitKey(0);
+	imshow( wndNameBlobs, out );
+	//waitKey(0);
 };
 
 void ColorSegment( vector<Mat> color_planes, Rect roi )
@@ -680,6 +678,7 @@ void DetectEyebrows()
 
 		imshow( "Sobel derrivative", imgEyebrowsGradientYABS );
 
+
 		Mat kernel = getStructuringElement( CV_SHAPE_ELLIPSE, Size(3,3) );
 		Mat kernel5 = getStructuringElement( CV_SHAPE_ELLIPSE, Size(5,5) );
 		morphologyEx( leftSmoothed, leftSmoothed,	CV_MOP_CLOSE,	kernel, Point(-1,-1), 1 );
@@ -698,8 +697,6 @@ void DetectEyebrows()
 
 		imshow( "Left thr", leftThresh );
 		imshow( "Right thr", rightThresh );
-
-		SimpleBlobDetector blobDetector;
 	}
 };
 
@@ -783,7 +780,8 @@ void ProcessAlgorithm()
 {
 	double	eyes_exec_time,
 			mouth_exec_time,
-			eyebrows_exec_time;
+			eyebrows_exec_time,
+			face_exec_time;
 
 	// Make a copy of source image
 	imgSrc.copyTo( imgProcessed );
@@ -796,15 +794,24 @@ void ProcessAlgorithm()
 	split( imgSrc, rgb_planes );
 	split( imgSrc, hls_planes );
 
-	if( DetectFaces() )
+	face_exec_time = startTime();
+	bool isFace = DetectFaces();
+	calcExecTime( &face_exec_time );
+	cout << "face detect\t\t" << (int)face_exec_time << " ms" << endl;
+
+	if( isFace )
 	{
 		eyes_exec_time = startTime();
 		DetectEyes();
 		calcExecTime( &eyes_exec_time );
-		cout << "eyes detect\t" << (int)eyes_exec_time << " ms" << endl;
+		cout << "eyes detect\t\t" << (int)eyes_exec_time << " ms" << endl;
 
 		//DetectMouth();
-		//DetectEyebrows();
+		
+		eyebrows_exec_time = startTime();
+		DetectEyebrows();
+		calcExecTime( &eyebrows_exec_time );
+		cout << "eyesbrows detect\t" << (int)eyebrows_exec_time << " ms" << endl;
 	}
 	imshow( wndNameFace, imgProcessed );
 	return;
@@ -836,9 +843,9 @@ int main(int argc, char** argv )
 
 		// End time
 		calcExecTime( &exec_time );
-		cout << "main: exec time\t" << (int)exec_time << " ms\t" 
-			<< setiosflags(ios::basefield) << setiosflags(ios::fixed) << setprecision(1)
-			 << (1000/exec_time) << " FPS" << endl;
+		cout << "main: exec time\t\t" << (int)exec_time << " ms\t" 
+			 << setiosflags(ios::basefield) << setiosflags(ios::fixed) << setprecision(1)
+			 << (1000/exec_time) << " FPS" << endl << endl;
 		
 		displayStats();
 		imshow( wndNameFace, imgProcessed );

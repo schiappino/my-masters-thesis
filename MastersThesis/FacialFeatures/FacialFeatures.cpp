@@ -1,19 +1,21 @@
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <vector>
 #include <string>
 #include <opencv2/objdetect/objdetect.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/features2d/features2d.hpp>
 
 #define HUE_PLANE 0
 #define COLOR_FERET_DB_SIZE 4000
 #define IMM_DB_SIZE	250
-#define _DEBUG
+
 #define FACE_DETECT_DEBUG
 //#define _MOUTH_ROI_DEBUG
 #define _CRT_SECURE_NO_WARNINGS 1
-//#define EYES_DETECT_SINGLE_CASCADE
+#define EYES_DETECT_SINGLE_CASCADE
 //#define EYES_DETECT_MULTI_CASCADE
 //#define EYES_DETECT_HOUGH_TRANSFORM
 //#define EYES_DETECT_CONNECTED_COMP
@@ -45,6 +47,8 @@ const double K_EXP_OPERATOR = 0.021730445275131082926453094854987607371612921273
 
 VideoCapture videoCapture;
 
+SimpleBlobDetector blobDetector;
+
 CascadeClassifier
 	cascadeFace,
 	cascadeMouth,
@@ -71,7 +75,6 @@ Mat
 	imgGray,
 	imgThresh,
 	imgEdge,
-	imgEyebrows,
 	imgMouth,
 	imgProcessed,
 
@@ -102,7 +105,7 @@ int
 
 
 	mouthThreshold	= 0,
-	bilatBlurVal	= 10,
+	bilatBlurVal	= 12,
 	eyeThreshold	= 0,
 	eyebrowThreshold = 0,
 
@@ -132,6 +135,7 @@ const char
 	* wndNameEyesExpTrans = "Eyes Exponential Transform",
 	* wndNameEyesThresh	 = "Eyes threshold",
 	* wndNameTemplRes = "Template Match Res",
+	* wndNameBlobs = "Blobs",
 
 	* trckbarMouthThresh = "Mouth THR",
 	* trckbarbilateralBlur = "Bilatera blur",
@@ -160,11 +164,11 @@ inline string getCurentFileName( string filePath )
 void displayStats()
 {
 	// Show image size
-	sprintf_s( text, 256, "%dx%d", imgSrc.size().width, imgSrc.size().height );
+	sprintf_s( text, 255, "%dx%d", imgSrc.size().width, imgSrc.size().height );
 	putTextWithShadow( imgProcessed, text, Point(5, 35) );
 
 	// Show FPS
-	sprintf_s( text, 256, "FPS %2.0f", 1000/exec_time);
+	sprintf_s( text, 255, "FPS %2.0f", 1000/exec_time);
 	putTextWithShadow( imgProcessed, text, Point(5, 55) );
 
 	// When working on files 
@@ -173,13 +177,13 @@ void displayStats()
 		// Show current file name 
 		putTextWithShadow( imgProcessed, getCurentFileName( imgFileList.at(imIt) ).c_str(), Point(5, 75));
 
-		sprintf_s( text, 256, "Current Image %d", imIt);
+		sprintf_s( text, 255, "Current Image %d", imIt);
 		putTextWithShadow( imgProcessed, text, Point(5, 115) );
 	}
 	else if( PROGRAM_MODE == 2 )
 	{
 		// Show current frame no.
-		sprintf_s( text, 256, "Video pos %d%%", cvRound(videoCapture.get( CV_CAP_PROP_POS_AVI_RATIO)*100));
+		sprintf_s( text, 255, "Video pos %d%%", cvRound(videoCapture.get( CV_CAP_PROP_POS_AVI_RATIO)*100));
 		putTextWithShadow( imgProcessed, text, Point(5, 75));
 	}
 }
@@ -220,7 +224,7 @@ void onEyebrowThresh( int val, void* )
 
 void InitGUI()
 {
-	int flags = CV_WINDOW_KEEPRATIO | CV_GUI_NORMAL;
+	int flags = CV_WINDOW_KEEPRATIO | CV_GUI_EXPANDED;
 
 	namedWindow( wndNameSrc, flags );
 	namedWindow( wndNameFace, flags );
@@ -230,6 +234,7 @@ void InitGUI()
 	//namedWindow( wndNameEyesExpTrans, flags );
 	//namedWindow( wndNameBilateral, flags );
 	//namedWindow( wndNameTemplRes, flags );
+	namedWindow( wndNameBlobs, flags );
 
 	createTrackbar( trckbarMouthThresh, wndNameMouth, &mouthThreshold, 255, onThresholdTrackbar );
 	createTrackbar( trckbarbilateralBlur, "", &bilatBlurVal, 20, onBilateralBlur );
@@ -365,6 +370,9 @@ int Init()
 		return -1;
 	}
 
+	// Init Blod detector
+	blobDetector.create("SimpleBlob");
+
 	return 0;
 };
 
@@ -439,6 +447,21 @@ void EyeTemplateMatching( Mat src, Mat disp, Mat templ, int irisRadius)
 	#ifdef EYES_TEMPLATE_MATCH_DEBUG
 	imshow( wndNameTemplRes, result );
 	#endif
+};
+
+void BlobDetector( Mat src )
+{
+	Mat out;
+	vector<KeyPoint> keyPoints;
+
+
+	
+ 		blobDetector.detect( src, keyPoints );
+		drawKeypoints( src, keyPoints, out, CV_RGB(0,255,0), DrawMatchesFlags::DRAW_RICH_KEYPOINTS );
+		cout << "Keypoints " << keyPoints.size() << endl;
+	
+		imshow( wndNameBlobs, out );
+		//waitKey(0);
 };
 
 void ColorSegment( vector<Mat> color_planes, Rect roi )
@@ -548,28 +571,13 @@ void DetectEyes()
 		bitwise_not( imgEyes, imgEyes );
 		exponentialOperator( imgEyes, imgEyes );
 		imshow( wndNameEyesExpTrans, imgEyes );
-		
-		//Mat kernel = getStructuringElement( MORPH_ELLIPSE, Size(3, 3) );
-		//morphologyEx( imgEyes, imgEyes, MORPH_CLOSE, kernel, Point(1,1), 1 );
-		//morphologyEx( imgEyes, imgEyes, MORPH_OPEN, kernel, Point(1,1), 1 );
-		//threshold( imgEyes, imgEyes, eyeThreshold, 255, THRESH_BINARY );
-		//imshow( wndNameEyesThresh, imgEyes );
+
+		BlobDetector( imgEyes );
 
 		Mat imgProcessedLeftEye ( imgProcessed, eyeLeftROI ),
 			imgProcessedRightEye ( imgProcessed, eyeRightROI );
 		EyeTemplateMatching( imgEyeLeft, imgProcessedLeftEye, imgTempl, irisRadiusMax );
 		EyeTemplateMatching( imgEyeRight, imgProcessedRightEye, imgTempl, irisRadiusMax );
-
-		//Mat imgEyesHue ( hls_planes[0], eyesROI );
-		//imshow( "Hue: eyes", imgEyesHue );
-
-		//Mat imgEyesSat ( hls_planes[2], eyesROI );
-		//imshow( "Sat: eyes", imgEyesSat );
-
-		//Mat imgEyesSat2 ( hsv_planes[1], eyesROI );
-		//imshow ( "Sat2: eyes", imgEyesSat2 );
-
-		//ColorSegment( hls_planes, eyesROI );
 
 		#ifdef EYES_DETECT_HOUGH_TRANSFORM
 		// --> Hough Circle transform for iris detection
@@ -633,14 +641,19 @@ void DetectEyebrows()
 		Rect eyebrowRightROI = Rect( (int)(faces[0].x + 0.5*faces[0].width),(int)(faces[0].y + 0.2*faces[0].height), 
 									 (int)(0.4*faces[0].width),				(int)(0.2*faces[0].height) );
 
-		Mat imgEybrows		( rgb_planes[0], eyesbrowsROI ),
+		Mat imgEyebrows		( rgb_planes[0], eyesbrowsROI ),
 			imgEyebrowLeft	( rgb_planes[0], eyebrowLeftROI ),
 			imgEyebrowRight	( rgb_planes[0], eyebrowRightROI ),
 			imgGrayEyebrows ( imgGray,		 eyesbrowsROI );
 
+		Mat imgEyebrowsRed;
+
 		equalizeHist( imgEyebrowLeft, imgEyebrowLeft );
 		equalizeHist( imgEyebrowRight, imgEyebrowRight );
-		equalizeHist( imgGrayEyebrows, imgGrayEyebrows );
+
+		imgEyebrows.copyTo( imgEyebrowsRed );
+		imshow( "Eyebrows Red Channel", imgEyebrowsRed );
+
 
 		bitwise_not( imgEyebrowLeft, imgEyebrowLeft );
 		bitwise_not( imgEyebrowRight, imgEyebrowRight );
@@ -648,12 +661,27 @@ void DetectEyebrows()
 		exponentialOperator( imgEyebrowLeft, imgEyebrowLeft );
 		exponentialOperator( imgEyebrowRight, imgEyebrowRight );
 
-		Mat leftSmoothed, rightSmoothed, leftThresh, rightThresh, grayThresh;
+		Mat leftSmoothed, rightSmoothed, redSmoothed,
+			leftThresh, rightThresh, grayThresh, redThresh;
 		int b = bilatBlurVal;
+
 		bilateralFilter( imgEyebrowLeft, leftSmoothed, b, 2*b, b/2. );
 		bilateralFilter( imgEyebrowRight, rightSmoothed, b, 2*b, b/2. );
+		bilateralFilter( imgEyebrowsRed, redSmoothed, b, 2*b, b/2. );
+
+		imshow( "Eyebrows Red channel smooth", redSmoothed );
+
+
+		Mat imgEyebrowsGradientY,
+			imgEyebrowsGradientYABS;
+
+		Sobel( imgEyebrowsRed, imgEyebrowsGradientY, CV_16S, 0, 1, 3 );
+		convertScaleAbs( imgEyebrowsGradientY, imgEyebrowsGradientYABS );
+
+		imshow( "Sobel derrivative", imgEyebrowsGradientYABS );
 
 		Mat kernel = getStructuringElement( CV_SHAPE_ELLIPSE, Size(3,3) );
+		Mat kernel5 = getStructuringElement( CV_SHAPE_ELLIPSE, Size(5,5) );
 		morphologyEx( leftSmoothed, leftSmoothed,	CV_MOP_CLOSE,	kernel, Point(-1,-1), 1 );
 		morphologyEx( leftSmoothed, leftSmoothed,	CV_MOP_OPEN,	kernel, Point(-1,-1), 1 );
 		morphologyEx( rightSmoothed, rightSmoothed, CV_MOP_CLOSE,	kernel, Point(-1,-1), 1 );
@@ -661,10 +689,9 @@ void DetectEyebrows()
 
 		threshold( leftSmoothed, leftThresh, eyebrowThreshold, 255, CV_THRESH_BINARY );
 		threshold( rightSmoothed, rightThresh, eyebrowThreshold, 255, CV_THRESH_BINARY );
-		threshold( imgGrayEyebrows, grayThresh, eyebrowThreshold, 255, CV_THRESH_BINARY );
+		threshold( redSmoothed, redThresh, eyebrowThreshold, 255, CV_THRESH_BINARY );
 
-		imshow( "Eyebrow left", imgEyebrowLeft );
-		imshow( "Eyebrow right", imgEyebrowRight );
+		imshow( "gradeient thresh", redThresh );
 
 		imshow( "Left smoothed", leftSmoothed );
 		imshow( "Right smoothed", rightSmoothed );
@@ -672,8 +699,7 @@ void DetectEyebrows()
 		imshow( "Left thr", leftThresh );
 		imshow( "Right thr", rightThresh );
 
-		imshow( "Eyebrows gray", imgGrayEyebrows );
-		imshow( "Eyebrows gray thr", grayThresh );
+		SimpleBlobDetector blobDetector;
 	}
 };
 
@@ -755,6 +781,10 @@ void DetectMouth()
 
 void ProcessAlgorithm()
 {
+	double	eyes_exec_time,
+			mouth_exec_time,
+			eyebrows_exec_time;
+
 	// Make a copy of source image
 	imgSrc.copyTo( imgProcessed );
 
@@ -768,9 +798,13 @@ void ProcessAlgorithm()
 
 	if( DetectFaces() )
 	{
-		//DetectEyes();
+		eyes_exec_time = startTime();
+		DetectEyes();
+		calcExecTime( &eyes_exec_time );
+		cout << "eyes detect\t" << (int)eyes_exec_time << " ms" << endl;
+
 		//DetectMouth();
-		DetectEyebrows();
+		//DetectEyebrows();
 	}
 	imshow( wndNameFace, imgProcessed );
 	return;
@@ -802,7 +836,9 @@ int main(int argc, char** argv )
 
 		// End time
 		calcExecTime( &exec_time );
-		cout << "Exec time was "<< exec_time << "\t" << (int) (1000/exec_time) << " FPS" << endl;
+		cout << "main: exec time\t" << (int)exec_time << " ms\t" 
+			<< setiosflags(ios::basefield) << setiosflags(ios::fixed) << setprecision(1)
+			 << (1000/exec_time) << " FPS" << endl;
 		
 		displayStats();
 		imshow( wndNameFace, imgProcessed );

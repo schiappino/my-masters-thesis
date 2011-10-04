@@ -10,7 +10,7 @@
       <AdditionalIncludeDirectories>$(OPENCV_DIR)\src\opencv\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(OPENCV_DIR)\build\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(OPENCV_DIR)\buildQt\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>opencv_core231d.lib;opencv_imgproc231d.lib;opencv_highgui231d.lib;opencv_ml231d.lib;opencv_video231d.lib;opencv_features2d231d.lib;opencv_calib3d231d.lib;opencv_objdetect231d.lib;opencv_contrib231d.lib;opencv_legacy231d.lib;opencv_flann231d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>

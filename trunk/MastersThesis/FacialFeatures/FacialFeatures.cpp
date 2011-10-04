@@ -507,8 +507,17 @@ void drawEyebrow( Mat img, vector < vector <Point>>& eyebrowCandidates, Point of
 			bestMatchCandidateIdx = i;
 		}
 	}
+	vector <int> x_coords;
+	int pointsCnt = eyebrowCandidates[bestMatchCandidateIdx].size();
+	x_coords.resize( pointsCnt )
+	for( size_t i = 0; i < pointsCnt; ++i )
+		x_coords[i] = eyebrowCandidates[bestMatchCandidateIdx][i].x;
 
-
+	vector <int>::iterator pos;
+	pos = min_element( x_coords.begin(), x_coords.end() );
+	int leftMostPostionX = *pos;
+	pos = max_element( x_coords.begin(), x_coords.end() );
+	int rightMostPostionX = *pos;
 }
 
 void ColorSegment( vector<Mat> color_planes, Rect roi )

@@ -14,7 +14,6 @@
 
 #define FACE_DETECT_DEBUG
 //#define _MOUTH_ROI_DEBUG
-#define _CRT_SECURE_NO_WARNINGS 1
 #define EYES_DETECT_SINGLE_CASCADE
 //#define EYES_DETECT_MULTI_CASCADE
 //#define EYES_DETECT_HOUGH_TRANSFORM
@@ -46,8 +45,6 @@ const int PROGRAM_MODE = 2;
 const double K_EXP_OPERATOR = 0.0217304452751310829264530948549876073716129212732431841605;
 
 VideoCapture videoCapture;
-
-SimpleBlobDetector blobDetector;
 
 CascadeClassifier
 	cascadeFace,
@@ -102,6 +99,7 @@ int
 	Hough_dp		= 2,
 	HoughMinDist	= 50,
 	TemplMatchMet	= 4,
+	eyebrowMorph	= 1,
 
 
 	mouthThreshold	= 0,
@@ -221,7 +219,10 @@ void onEyebrowThresh( int val, void* )
 {
 	eyebrowThreshold = val;
 };
-
+void onEyebrowMorph( int val, void* )
+{
+	eyebrowMorph = val;
+};
 void InitGUI()
 {
 	int flags = CV_WINDOW_KEEPRATIO | CV_GUI_EXPANDED;
@@ -243,6 +244,7 @@ void InitGUI()
 	createTrackbar( trckbarZ, "", &z, 50, onZTrackbar );
 	createTrackbar( "Templ Match Met", "", &TemplMatchMet, 5, onTemplateMatchingMet );
 	createTrackbar( "Eyebrow THR", "", &eyebrowThreshold, 255, onEyebrowThresh );
+	createTrackbar( "Eyebrow Morphology", "", &eyebrowMorph, 10, onEyebrowMorph );
 };
 
 void handleKeyboard( char c )
@@ -370,9 +372,6 @@ int Init()
 		return -1;
 	}
 
-	// Init Blod detector
-	blobDetector.create("SimpleBlob");
-
 	return 0;
 };
 
@@ -453,14 +452,64 @@ void BlobDetector( Mat src )
 {
 	Mat out;
 	vector<KeyPoint> keyPoints;
+	vector <vector <Point>> contours,
+							approxContours;
 
-	blobDetector.detect( src, keyPoints );
-	drawKeypoints( src, keyPoints, out, CV_RGB(0,255,0), DrawMatchesFlags::DRAW_RICH_KEYPOINTS );
+	SimpleBlobDetector::Params params;
+	params.minThreshold = 50;
+	params.maxThreshold = 100;
+	params.thresholdStep = 5;
+
+	params.minArea = 100; 
+	params.minConvexity = 0.3;
+	params.minInertiaRatio = 0.01;
+
+	params.maxArea = 8000;
+	params.maxConvexity = 10;
+
+	params.filterByArcLength = true;
+	params.minArcLen = 100;
+	params.maxArcLen = 400;
+
+	params.filterByColor = false;
+	params.filterByCircularity = false;
+
+	SimpleBlobDetector blobs( params );
+	blobs.create("SimpleBlob");
+
+ 	blobs.detectEx( src, keyPoints, contours, Mat() );
+	drawKeypoints( src, keyPoints, out, CV_RGB(0,255,0), DrawMatchesFlags::DEFAULT );
+	approxContours.resize( contours.size() );
+
+	for( int i = 0; i < contours.size(); ++i )
+	{
+		approxPolyDP( Mat(contours[i]), approxContours[i], 4, 1 );
+		drawContours( out, contours, i, CV_RGB(rand()&255, rand()&255, rand()&255) );
+		drawContours( out, approxContours, i, CV_RGB(rand()&255, rand()&255, rand()&255) );
+	}
 	cout << "DEBUG Keypoints " << keyPoints.size() << endl;
 
 	imshow( wndNameBlobs, out );
 	//waitKey(0);
 };
+
+void drawEyebrow( Mat img, vector < vector <Point>>& eyebrowCandidates, Point offset = Point() )
+{
+	// Assume that longest candidate is best match for eyebrow
+	float maxArcLen = 0;
+	int bestMatchCandidateIdx;
+	for( size_t i = 0; i < eyebrowCandidates.size(); ++i )
+	{
+		float curArcLen = arcLength( Mat(eyebrowCandidates[i]), false );
+		if( curArcLen > maxArcLen )
+		{
+			maxArcLen = curArcLen;
+			bestMatchCandidateIdx = i;
+		}
+	}
+
+
+}
 
 void ColorSegment( vector<Mat> color_planes, Rect roi )
 {
@@ -570,8 +619,6 @@ void DetectEyes()
 		exponentialOperator( imgEyes, imgEyes );
 		imshow( wndNameEyesExpTrans, imgEyes );
 
-		BlobDetector( imgEyes );
-
 		Mat imgProcessedLeftEye ( imgProcessed, eyeLeftROI ),
 			imgProcessedRightEye ( imgProcessed, eyeRightROI );
 		EyeTemplateMatching( imgEyeLeft, imgProcessedLeftEye, imgTempl, irisRadiusMax );
@@ -650,8 +697,6 @@ void DetectEyebrows()
 		equalizeHist( imgEyebrowRight, imgEyebrowRight );
 
 		imgEyebrows.copyTo( imgEyebrowsRed );
-		imshow( "Eyebrows Red Channel", imgEyebrowsRed );
-
 
 		bitwise_not( imgEyebrowLeft, imgEyebrowLeft );
 		bitwise_not( imgEyebrowRight, imgEyebrowRight );
@@ -668,35 +713,49 @@ void DetectEyebrows()
 		bilateralFilter( imgEyebrowsRed, redSmoothed, b, 2*b, b/2. );
 
 		imshow( "Eyebrows Red channel smooth", redSmoothed );
+		imshow( "Left eyebrow smoothed", leftSmoothed );
+		imshow( "Right eyebrow smoothed", rightSmoothed );
+
+		Mat leftEybrowSmoothedRed ( redSmoothed, Rect(redSmoothed.size().width*0.1, 0, redSmoothed.size().width*0.4, redSmoothed.size().height ));
+		Mat rightEybrowSmoothedRed ( redSmoothed, Rect(redSmoothed.size().width*0.5, 0, redSmoothed.size().width*0.4, redSmoothed.size().height ));
+		BlobDetector( leftEybrowSmoothedRed );
+		BlobDetector( rightEybrowSmoothedRed );
+
+		//Mat imgEyebrowsGradientY,
+		//	imgEyebrowsGradientYABS;
+
+		//Sobel( redSmoothed, imgEyebrowsGradientY, CV_16S, 0, 1, 3 );
+		//convertScaleAbs( imgEyebrowsGradientY, imgEyebrowsGradientYABS );
+
+		//imshow( "Sobel derrivative", imgEyebrowsGradientYABS );
 
 
-		Mat imgEyebrowsGradientY,
-			imgEyebrowsGradientYABS;
+		//Mat kernel = getStructuringElement( CV_SHAPE_ELLIPSE, Size(3,3) );
+		//Mat kernel5 = getStructuringElement( CV_SHAPE_ELLIPSE, Size(5,5) );
+		//morphologyEx( leftSmoothed, leftSmoothed,	CV_MOP_CLOSE,	kernel, Point(-1,-1), 1 );
+		//morphologyEx( leftSmoothed, leftSmoothed,	CV_MOP_OPEN,	kernel, Point(-1,-1), 1 );
+		//morphologyEx( rightSmoothed, rightSmoothed, CV_MOP_CLOSE,	kernel, Point(-1,-1), 1 );
+		//morphologyEx( rightSmoothed, rightSmoothed, CV_MOP_OPEN,	kernel, Point(-1,-1), 1 );
 
-		Sobel( imgEyebrowsRed, imgEyebrowsGradientY, CV_16S, 0, 1, 3 );
-		convertScaleAbs( imgEyebrowsGradientY, imgEyebrowsGradientYABS );
+		//threshold( leftSmoothed, leftThresh, eyebrowThreshold, 255, CV_THRESH_BINARY );
+		//threshold( rightSmoothed, rightThresh, eyebrowThreshold, 255, CV_THRESH_BINARY );
+		//threshold( redSmoothed, redThresh, eyebrowThreshold, 255, CV_THRESH_BINARY );
+		//threshold( imgEyebrowsGradientYABS, imgEyebrowsGradientYABS, eyebrowThreshold, 255, CV_THRESH_BINARY );
 
-		imshow( "Sobel derrivative", imgEyebrowsGradientYABS );
+		//imshow( "Gradient thresh", imgEyebrowsGradientYABS );
+		//imshow( "red thresh", redThresh );
 
+		//imshow( "Left smoothed", leftSmoothed );
+		//imshow( "Right smoothed", rightSmoothed );
 
-		Mat kernel = getStructuringElement( CV_SHAPE_ELLIPSE, Size(3,3) );
-		Mat kernel5 = getStructuringElement( CV_SHAPE_ELLIPSE, Size(5,5) );
-		morphologyEx( leftSmoothed, leftSmoothed,	CV_MOP_CLOSE,	kernel, Point(-1,-1), 1 );
-		morphologyEx( leftSmoothed, leftSmoothed,	CV_MOP_OPEN,	kernel, Point(-1,-1), 1 );
-		morphologyEx( rightSmoothed, rightSmoothed, CV_MOP_CLOSE,	kernel, Point(-1,-1), 1 );
-		morphologyEx( rightSmoothed, rightSmoothed, CV_MOP_OPEN,	kernel, Point(-1,-1), 1 );
+		//imshow( "Left thr", leftThresh );
+		//imshow( "Right thr", rightThresh );
 
-		threshold( leftSmoothed, leftThresh, eyebrowThreshold, 255, CV_THRESH_BINARY );
-		threshold( rightSmoothed, rightThresh, eyebrowThreshold, 255, CV_THRESH_BINARY );
-		threshold( redSmoothed, redThresh, eyebrowThreshold, 255, CV_THRESH_BINARY );
+		//// After thresholding red channel gradient perform morphology
+		//Mat redMorph;
+		//morphologyEx( imgEyebrowsGradientYABS, redMorph, CV_MOP_CLOSE,	kernel5, Point(-1,-1), eyebrowMorph );
+		//imshow( "Red gradient morphology", redMorph );
 
-		imshow( "gradeient thresh", redThresh );
-
-		imshow( "Left smoothed", leftSmoothed );
-		imshow( "Right smoothed", rightSmoothed );
-
-		imshow( "Left thr", leftThresh );
-		imshow( "Right thr", rightThresh );
 	}
 };
 
@@ -802,7 +861,7 @@ void ProcessAlgorithm()
 	if( isFace )
 	{
 		eyes_exec_time = startTime();
-		DetectEyes();
+		//DetectEyes();
 		calcExecTime( &eyes_exec_time );
 		cout << "eyes detect\t\t" << (int)eyes_exec_time << " ms" << endl;
 

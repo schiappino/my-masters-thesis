@@ -496,6 +496,7 @@ void BlobDetector( Mat src )
 void drawEyebrow( Mat img, vector < vector <Point>>& eyebrowCandidates, Point offset = Point() )
 {
 	// Assume that longest candidate is best match for eyebrow
+	// Search for best match candidate Index
 	float maxArcLen = 0;
 	int bestMatchCandidateIdx;
 	for( size_t i = 0; i < eyebrowCandidates.size(); ++i )
@@ -507,17 +508,52 @@ void drawEyebrow( Mat img, vector < vector <Point>>& eyebrowCandidates, Point of
 			bestMatchCandidateIdx = i;
 		}
 	}
-	vector <int> x_coords;
-	int pointsCnt = eyebrowCandidates[bestMatchCandidateIdx].size();
-	x_coords.resize( pointsCnt )
-	for( size_t i = 0; i < pointsCnt; ++i )
-		x_coords[i] = eyebrowCandidates[bestMatchCandidateIdx][i].x;
+	// Make candidate copy just for convienance
+	vector <Point> candidate (eyebrowCandidates[bestMatchCandidateIdx]);
 
-	vector <int>::iterator pos;
-	pos = min_element( x_coords.begin(), x_coords.end() );
-	int leftMostPostionX = *pos;
-	pos = max_element( x_coords.begin(), x_coords.end() );
-	int rightMostPostionX = *pos;
+	// Search for min and max X-axis coord of candidate
+	int pointsCnt = candidate.size();
+	int left_tmp = numeric_limits<int>::max(),
+		right_tmp = 0;
+	size_t leftIdx,
+		   rightIdx;;
+	for( size_t i = 0; i < pointsCnt; ++i )
+	{
+		if( candidate[i].x < left_tmp )
+		{
+			leftIdx = i;
+			left_tmp = candidate[i].x;
+		}
+		if( candidate[i].x > right_tmp )
+		{
+			rightIdx = i;
+			right_tmp = candidate[i].x;
+		}
+	}
+	Point leftMostPoint (candidate[leftIdx]),
+		 rightMostPoint (candidate[rightIdx]);
+
+
+	// Having left- and righ-most X-axis coords look for middple coords
+	// Start by creating copy of candidate
+	int middlePointX = cvRound( (leftMostPoint.x + rightMostPoint.x) / 2 );
+	vector <int> y_coords;
+	for( size_t i = 0; i < pointsCnt; ++i )
+	{
+		int cur_x = candidate[i].x;
+		if( cur_x > 0. *middlePointX && cur_x < 1.2*middlePointX )
+			y_coords.push_back( candidate[i].y);
+	}
+	int y_tmp_coord = 0;
+	for( size_t i = 0; i < y_coords.size(); ++i )
+		y_tmp_coord += y_coords[i];
+
+	int middlePointY = cvRound( y_tmp_coord/y_coords.size() );
+	Point midllePoint (middlePointX, middlePointY);
+
+	// draw eyebrow lines
+	line( img, leftMostPoint, midllePoint, CV_RGB(0,0,255), 4 );
+	line( img, rightMostPoint, midllePoint, CV_RGB(0,0,255), 4 );
 }
 
 void ColorSegment( vector<Mat> color_planes, Rect roi )

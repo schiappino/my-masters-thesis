@@ -3,4 +3,4 @@
 
 void DetectEyebrows(void);
 void drawEyebrow( Mat img, vector <vector <Point>>& eyebrowCandidates, Point offset );
-void BlobDetector( Mat src, vector <vector <Point>>& candidates );
+void blobDetector( Mat src, vector <vector <Point>>& candidates );

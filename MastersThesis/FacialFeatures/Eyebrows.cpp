@@ -47,21 +47,22 @@ void DetectEyebrows()
 		Mat rightEybrowSmoothedRed ( redSmoothed, Rect(redSmoothed.size().width*0.5, 0, redSmoothed.size().width*0.4, redSmoothed.size().height ));
 		
 		vector < vector <Point>> eyebrowCandidates;
+		vector<KeyPoint> keyPoints;
 		Point offset;
 		
 		offset.x = eyesbrowsROI.x + eyesbrowsROI.width*0.1;
 		offset.y = eyesbrowsROI.y;
-		blobDetector( leftEybrowSmoothedRed, eyebrowCandidates );
-		drawEyebrow( imgProcessed, eyebrowCandidates, offset );
+		blobDetector( leftEybrowSmoothedRed, eyebrowCandidates, keyPoints );
+		drawEyebrow( imgProcessed, eyebrowCandidates, keyPoints, offset );
 
 		offset.x = eyesbrowsROI.x + eyesbrowsROI.width*0.5;
-		blobDetector( rightEybrowSmoothedRed, eyebrowCandidates );
-		drawEyebrow( imgProcessed, eyebrowCandidates, offset );
+		blobDetector( rightEybrowSmoothedRed, eyebrowCandidates, keyPoints );
+		drawEyebrow( imgProcessed, eyebrowCandidates, keyPoints, offset );
 
 		imshow( wndNameFace, imgProcessed );
 	}
 };
-void drawEyebrow( Mat img, vector <vector <Point>>& eyebrowCandidates, Point offset = Point() )
+void drawEyebrow( Mat img, vector <vector <Point>>& eyebrowCandidates, vector<KeyPoint>& keyPoints, Point offset = Point() )
 {
 	// Assume that longest candidate is best match for eyebrow
 	// Search for best match candidate Index
@@ -139,11 +140,12 @@ void drawEyebrow( Mat img, vector <vector <Point>>& eyebrowCandidates, Point off
 	line( img, leftMostPoint, midllePoint, CV_RGB(0,0,255), 4 );
 	line( img, rightMostPoint, midllePoint, CV_RGB(0,0,255), 4 );
 }
-void blobDetector( Mat src, vector <vector <Point>>& candidates )
+void blobDetector( Mat src, vector <vector <Point>>& candidates, vector<KeyPoint>& keyPoints )
 {
 	candidates.clear();
+	keyPoints.clear();
+
 	Mat out;
-	vector<KeyPoint> keyPoints;
 	vector <vector <Point>> contours;
 
 	SimpleBlobDetector::Params params;

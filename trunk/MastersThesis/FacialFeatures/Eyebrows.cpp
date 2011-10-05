@@ -1,4 +1,5 @@
 #include "Eyebrows.h"
+#include <iterator>
 
 void DetectEyebrows()
 {
@@ -63,7 +64,7 @@ void DetectEyebrows()
 	}
 };
 void drawEyebrow( Mat img, vector <vector <Point>>& eyebrowCandidates, vector<KeyPoint>& keyPoints, Point offset = Point() )
-{
+{	
 	// Assume that longest candidate is best match for eyebrow
 	// Search for best match candidate Index
 	size_t bestMatchCandidateIdx;
@@ -184,3 +185,69 @@ void blobDetector( Mat src, vector <vector <Point>>& candidates, vector<KeyPoint
 
 	imshow( wndNameBlobs, out );
 };
+void getBestEyebrowCadidate( Mat img, vector <vector <Point>>& candidates, 
+							 vector<KeyPoint>& keyPoints, vector <Point>& bestMatch,
+							 int flag )
+{
+	bestMatch.clear();
+	int candCnt = candidates.size();
+
+	// When only on candidate is avaliable we simply return it
+	if ( candCnt == 1 )
+	{
+		bestMatch = candidates[0];
+		copy( candidates[0].begin(), candidates[0].end(), back_inserter(bestMatch));
+		return;
+	}
+	int regionHalfWidth = img.size().width/2.0,
+		regionHalfHeight = img.size().height/2.0;
+	float dy = 0,
+		  dy_tmp = 0;
+	size_t idx;
+	size_t yBestMatchCancidateIdx;
+	for( idx = 0; idx < candCnt; ++idx )
+	{
+		dy_tmp = abs( regionHalfHeight - keyPoints[idx].pt.y );
+		if ( dy_tmp > dy )
+		{
+			dy = dy_tmp;
+			yBestMatchCancidateIdx = idx;
+		}
+	}
+
+	float dx = 0;
+	size_t xBestMatchCancidateIdx;
+	// We assume that left eyebrow will be to the most right
+	// posiotion as on most left there will be shadows of hair and etc.
+	if ( flag == EyebrowCandidateFlags::LEFT )
+	{
+		for( idx = 0; idx < candCnt; ++idx )
+		{
+			if ( dx < keyPoints[idx].pt.x )
+			{
+				dx = keyPoints[idx].pt.x;
+				xBestMatchCancidateIdx = idx;
+			}
+		}
+	}
+	else if ( flag == EyebrowCandidateFlags::RIGHT )
+	{
+		dx = numeric_limits<float>::max();
+		for( idx = 0; idx < candCnt; ++idx )
+		{
+			if ( dx > keyPoints[idx].pt.x )
+			{
+				dx = keyPoints[idx].pt.x;
+				xBestMatchCancidateIdx = idx;
+			}
+		}
+	}
+	else { return; }
+
+	if ( xBestMatchCancidateIdx != yBestMatchCancidateIdx )
+		copy( candidates[yBestMatchCancidateIdx].begin(), candidates[yBestMatchCancidateIdx].end(), back_inserter(bestMatch));
+	else
+		copy( candidates[yBestMatchCancidateIdx].begin(), candidates[yBestMatchCancidateIdx].end(), back_inserter(bestMatch));
+
+	return;
+}

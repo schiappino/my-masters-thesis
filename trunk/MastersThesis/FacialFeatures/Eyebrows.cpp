@@ -73,7 +73,7 @@ void drawEyebrow( Mat img, vector <Point>& eyebrowContour, Point& eyebrowCenter,
 {	
 	// Assume that eyebrow is some % of face size
 	int ellipseX = 0.15 * face_size,
-		ellipseY = 0.06 * face_size;
+		ellipseY = 0.04 * face_size;
 	Point center = eyebrowCenter;
 
 	// Update interest point by offset
@@ -82,7 +82,7 @@ void drawEyebrow( Mat img, vector <Point>& eyebrowContour, Point& eyebrowCenter,
 		center.x += offset.x;
 		center.y += offset.y;
 	}
-	ellipse( img, center, Size(ellipseX,ellipseY), 0, 0, 360, CV_RGB(0,0,255), 4 );
+	ellipse( img, center, Size(ellipseX,ellipseY), 0, 220, 310, CV_RGB(0,0,255), 4 );
 }
 void blobDetector( Mat src, vector <vector <Point>>& candidates, vector<KeyPoint>& keyPoints )
 {
@@ -93,8 +93,8 @@ void blobDetector( Mat src, vector <vector <Point>>& candidates, vector<KeyPoint
 	vector <vector <Point>> contours;
 
 	SimpleBlobDetector::Params params;
-	params.minThreshold = 50;
-	params.maxThreshold = 100;
+	params.minThreshold = 30;
+	params.maxThreshold = 60;
 	params.thresholdStep = 5;
 
 	params.minArea = 100; 
@@ -146,22 +146,22 @@ void getBestEyebrowCadidate( Mat img, vector <vector <Point>>& candidates,
 	// Case when there is more than one candidate
 	int regionHalfWidth = img.size().width/2.0,
 		regionHalfHeight = img.size().height/2.0;
-	float dy = 0,
-		  dy_tmp = 0;
+	float dy_tmp,
+		  dy = numeric_limits<float>::max();
 	size_t idx;
-	size_t yBestMatchCancidateIdx;
+	size_t yBestMatchCandidateIdx;
 	for( idx = 0; idx < candCnt; ++idx )
 	{
 		dy_tmp = abs( regionHalfHeight - keyPoints[idx].pt.y );
-		if ( dy_tmp > dy )
+		if ( dy_tmp < dy )
 		{
 			dy = dy_tmp;
-			yBestMatchCancidateIdx = idx;
+			yBestMatchCandidateIdx = idx;
 		}
 	}
 
 	float dx = 0;
-	size_t xBestMatchCancidateIdx;
+	size_t xBestMatchCandidateIdx;
 	// We assume that left eyebrow will be to the most right
 	// posiotion as on most left there will be shadows of hair and etc.
 	if ( flag == EyebrowCandidateFlags::LEFT )
@@ -171,7 +171,7 @@ void getBestEyebrowCadidate( Mat img, vector <vector <Point>>& candidates,
 			if ( dx < keyPoints[idx].pt.x )
 			{
 				dx = keyPoints[idx].pt.x;
-				xBestMatchCancidateIdx = idx;
+				xBestMatchCandidateIdx = idx;
 			}
 		}
 	}
@@ -183,21 +183,21 @@ void getBestEyebrowCadidate( Mat img, vector <vector <Point>>& candidates,
 			if ( dx > keyPoints[idx].pt.x )
 			{
 				dx = keyPoints[idx].pt.x;
-				xBestMatchCancidateIdx = idx;
+				xBestMatchCandidateIdx = idx;
 			}
 		}
 	}
 	else { return; }
 
-	if ( xBestMatchCancidateIdx != yBestMatchCancidateIdx )
+	if ( xBestMatchCandidateIdx != yBestMatchCandidateIdx )
 	{
-		copy( candidates[yBestMatchCancidateIdx].begin(), candidates[yBestMatchCancidateIdx].end(), back_inserter(bestMatch));
-		center = keyPoints[yBestMatchCancidateIdx].pt;
+		copy( candidates[xBestMatchCandidateIdx].begin(), candidates[xBestMatchCandidateIdx].end(), back_inserter(bestMatch));
+		center = keyPoints[xBestMatchCandidateIdx].pt;
 	}
 	else
 	{
-		copy( candidates[yBestMatchCancidateIdx].begin(), candidates[yBestMatchCancidateIdx].end(), back_inserter(bestMatch));
-		center = keyPoints[yBestMatchCancidateIdx].pt;
+		copy( candidates[xBestMatchCandidateIdx].begin(), candidates[xBestMatchCandidateIdx].end(), back_inserter(bestMatch));
+		center = keyPoints[xBestMatchCandidateIdx].pt;
 	}
 
 	return;

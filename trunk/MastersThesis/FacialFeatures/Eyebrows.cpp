@@ -58,94 +58,30 @@ void DetectEyebrows()
 		blobDetector( leftEybrowSmoothedRed, eyebrowCandidates, keyPoints );
 		getBestEyebrowCadidate( leftEybrowSmoothedRed, eyebrowCandidates, keyPoints, 
 			bestMatch, bestMatchCenter, EyebrowCandidateFlags::LEFT );
-		drawEyebrow( imgProcessed, eyebrowCandidates, keyPoints, offset );
+		drawEyebrow( imgProcessed, bestMatch, bestMatchCenter, offset );
 
 		offset.x = eyesbrowsROI.x + eyesbrowsROI.width*0.5;
 		blobDetector( rightEybrowSmoothedRed, eyebrowCandidates, keyPoints );
 		getBestEyebrowCadidate( leftEybrowSmoothedRed, eyebrowCandidates, keyPoints, 
 			bestMatch, bestMatchCenter, EyebrowCandidateFlags::RIGHT );
-		drawEyebrow( imgProcessed, eyebrowCandidates, keyPoints, offset );
+		drawEyebrow( imgProcessed, bestMatch, bestMatchCenter, offset );
 
 		imshow( wndNameFace, imgProcessed );
 	}
 };
-void drawEyebrow( Mat img, vector <vector <Point>>& eyebrowCandidates, vector<KeyPoint>& keyPoints, Point offset = Point() )
+void drawEyebrow( Mat img, vector <Point>& eyebrowContour, Point& eyebrowCenter, Point offset = Point() )
 {	
-	// Assume that longest candidate is best match for eyebrow
-	// Search for best match candidate Index
-	size_t bestMatchCandidateIdx;
-	if( eyebrowCandidates.size() > 1 )
-	{
-		float maxArcLen = 0;
-		for( size_t i = 0; i < eyebrowCandidates.size(); ++i )
-		{
-			float curArcLen = arcLength( Mat(eyebrowCandidates[i]), false );
-			if( curArcLen > maxArcLen )
-			{
-				maxArcLen = curArcLen;
-				bestMatchCandidateIdx = i;
-			}
-		}
-	} else 
-		bestMatchCandidateIdx = 0;
-
-	// Make candidate copy just for convienance
-	vector <Point> candidate (eyebrowCandidates[bestMatchCandidateIdx]);
-
-	// Search for min and max X-axis coord of candidate
-	int pointsCnt = candidate.size();
-	int left_tmp = numeric_limits<int>::max(),
-		right_tmp = 0;
-	size_t leftIdx,
-		   rightIdx;;
-	for( size_t i = 0; i < pointsCnt; ++i )
-	{
-		if( candidate[i].x < left_tmp )
-		{
-			leftIdx = i;
-			left_tmp = candidate[i].x;
-		}
-		if( candidate[i].x > right_tmp )
-		{
-			rightIdx = i;
-			right_tmp = candidate[i].x;
-		}
-	}
-	Point leftMostPoint (candidate[leftIdx]),
-		 rightMostPoint (candidate[rightIdx]);
-
-
-	// Having left- and righ-most X-axis coords look for middple coords
-	// Start by creating copy of candidate
-	int middlePointX = cvRound( (leftMostPoint.x + rightMostPoint.x) / 2 );
-	vector <int> y_coords;
-	for( size_t i = 0; i < pointsCnt; ++i )
-	{
-		int cur_x = candidate[i].x;
-		if( cur_x > 0. *middlePointX && cur_x < 1.2*middlePointX )
-			y_coords.push_back( candidate[i].y);
-	}
-	int y_tmp_coord = 0;
-	for( size_t i = 0; i < y_coords.size(); ++i )
-		y_tmp_coord += y_coords[i];
-
-	int middlePointY = cvRound( y_tmp_coord/y_coords.size() );
-	Point midllePoint (middlePointX, middlePointY);
+	// Assume that eyebrow is some % of face size
+	int eyebrowWidth = 0.30 * face_size;
+	Point center = eyebrowCenter;
 
 	// Update interest point by offset
 	if ( offset.x || offset.y )
 	{
-		leftMostPoint.x += offset.x;
-		leftMostPoint.y += offset.y;
-		rightMostPoint.x += offset.x;
-		rightMostPoint.y += offset.y;
-		midllePoint.x += offset.x;
-		midllePoint.y += offset.y;
+		center.x += offset.x;
+		center.y += offset.y;
 	}
-
-	// draw eyebrow lines
-	line( img, leftMostPoint, midllePoint, CV_RGB(0,0,255), 4 );
-	line( img, rightMostPoint, midllePoint, CV_RGB(0,0,255), 4 );
+	ellipse( img, center, Size(40,7), 0, 240, 330, CV_RGB(0,0,255), 4 );
 }
 void blobDetector( Mat src, vector <vector <Point>>& candidates, vector<KeyPoint>& keyPoints )
 {

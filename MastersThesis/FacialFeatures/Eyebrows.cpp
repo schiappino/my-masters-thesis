@@ -195,7 +195,6 @@ void getBestEyebrowCadidate( Mat img, vector <vector <Point>>& candidates,
 	// When only on candidate is avaliable we simply return it
 	if ( candCnt == 1 )
 	{
-		bestMatch = candidates[0];
 		copy( candidates[0].begin(), candidates[0].end(), back_inserter(bestMatch));
 		return;
 	}

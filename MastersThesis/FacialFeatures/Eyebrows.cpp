@@ -72,7 +72,8 @@ void DetectEyebrows()
 void drawEyebrow( Mat img, vector <Point>& eyebrowContour, Point& eyebrowCenter, Point offset = Point() )
 {	
 	// Assume that eyebrow is some % of face size
-	int eyebrowWidth = 0.30 * face_size;
+	int ellipseX = 0.15 * face_size,
+		ellipseY = 0.06 * face_size;
 	Point center = eyebrowCenter;
 
 	// Update interest point by offset
@@ -81,7 +82,7 @@ void drawEyebrow( Mat img, vector <Point>& eyebrowContour, Point& eyebrowCenter,
 		center.x += offset.x;
 		center.y += offset.y;
 	}
-	ellipse( img, center, Size(40,7), 0, 240, 330, CV_RGB(0,0,255), 4 );
+	ellipse( img, center, Size(ellipseX,ellipseY), 0, 0, 360, CV_RGB(0,0,255), 4 );
 }
 void blobDetector( Mat src, vector <vector <Point>>& candidates, vector<KeyPoint>& keyPoints )
 {

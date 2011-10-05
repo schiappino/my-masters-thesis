@@ -133,5 +133,14 @@ extern vector <string> 	imgFileList;
 extern vector <Rect>	faces,
 						eyes,
 						mouths;
+// *********************************** ENUMS ************************************
+struct EyebrowCandidateFlags
+{
+	enum
+	{
+		LEFT = 1,
+		RIGHT = 2
+	};
+};
 
 #endif

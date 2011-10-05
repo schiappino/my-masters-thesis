@@ -47,17 +47,23 @@ void DetectEyebrows()
 		Mat leftEybrowSmoothedRed ( redSmoothed, Rect(redSmoothed.size().width*0.1, 0, redSmoothed.size().width*0.4, redSmoothed.size().height ));
 		Mat rightEybrowSmoothedRed ( redSmoothed, Rect(redSmoothed.size().width*0.5, 0, redSmoothed.size().width*0.4, redSmoothed.size().height ));
 		
-		vector < vector <Point>> eyebrowCandidates;
-		vector<KeyPoint> keyPoints;
-		Point offset;
+		vector <vector <Point>> eyebrowCandidates;
+		vector <KeyPoint> keyPoints;
+		vector <Point> bestMatch;
+		Point offset,
+			  bestMatchCenter;
 		
 		offset.x = eyesbrowsROI.x + eyesbrowsROI.width*0.1;
 		offset.y = eyesbrowsROI.y;
 		blobDetector( leftEybrowSmoothedRed, eyebrowCandidates, keyPoints );
+		getBestEyebrowCadidate( leftEybrowSmoothedRed, eyebrowCandidates, keyPoints, 
+			bestMatch, bestMatchCenter, EyebrowCandidateFlags::LEFT );
 		drawEyebrow( imgProcessed, eyebrowCandidates, keyPoints, offset );
 
 		offset.x = eyesbrowsROI.x + eyesbrowsROI.width*0.5;
 		blobDetector( rightEybrowSmoothedRed, eyebrowCandidates, keyPoints );
+		getBestEyebrowCadidate( leftEybrowSmoothedRed, eyebrowCandidates, keyPoints, 
+			bestMatch, bestMatchCenter, EyebrowCandidateFlags::RIGHT );
 		drawEyebrow( imgProcessed, eyebrowCandidates, keyPoints, offset );
 
 		imshow( wndNameFace, imgProcessed );
@@ -187,7 +193,7 @@ void blobDetector( Mat src, vector <vector <Point>>& candidates, vector<KeyPoint
 };
 void getBestEyebrowCadidate( Mat img, vector <vector <Point>>& candidates, 
 							 vector<KeyPoint>& keyPoints, vector <Point>& bestMatch,
-							 int flag )
+							 Point& center, int flag )
 {
 	bestMatch.clear();
 	int candCnt = candidates.size();
@@ -196,8 +202,11 @@ void getBestEyebrowCadidate( Mat img, vector <vector <Point>>& candidates,
 	if ( candCnt == 1 )
 	{
 		copy( candidates[0].begin(), candidates[0].end(), back_inserter(bestMatch));
+		center = keyPoints[0].pt;
 		return;
 	}
+
+	// Case when there is more than one candidate
 	int regionHalfWidth = img.size().width/2.0,
 		regionHalfHeight = img.size().height/2.0;
 	float dy = 0,
@@ -244,9 +253,15 @@ void getBestEyebrowCadidate( Mat img, vector <vector <Point>>& candidates,
 	else { return; }
 
 	if ( xBestMatchCancidateIdx != yBestMatchCancidateIdx )
+	{
 		copy( candidates[yBestMatchCancidateIdx].begin(), candidates[yBestMatchCancidateIdx].end(), back_inserter(bestMatch));
+		center = keyPoints[yBestMatchCancidateIdx].pt;
+	}
 	else
+	{
 		copy( candidates[yBestMatchCancidateIdx].begin(), candidates[yBestMatchCancidateIdx].end(), back_inserter(bestMatch));
+		center = keyPoints[yBestMatchCancidateIdx].pt;
+	}
 
 	return;
 }

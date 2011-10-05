@@ -94,7 +94,7 @@ void blobDetector( Mat src, vector <vector <Point>>& candidates, vector<KeyPoint
 
 	SimpleBlobDetector::Params params;
 	params.minThreshold = 30;
-	params.maxThreshold = 60;
+	params.maxThreshold = 100;
 	params.thresholdStep = 5;
 
 	params.minArea = 100; 
@@ -134,6 +134,7 @@ void getBestEyebrowCadidate( Mat img, vector <vector <Point>>& candidates,
 {
 	bestMatch.clear();
 	int candCnt = candidates.size();
+	vector <float> candidateTotalError( candCnt, 0.0 );
 
 	// When only on candidate is avaliable we simply return it
 	if ( candCnt == 1 )
@@ -145,60 +146,43 @@ void getBestEyebrowCadidate( Mat img, vector <vector <Point>>& candidates,
 
 	// Case when there is more than one candidate
 	int regionHalfWidth = img.size().width/2.0,
-		regionHalfHeight = img.size().height/2.0;
-	float dy_tmp,
-		  dy = numeric_limits<float>::max();
+		regionHalfHeight = img.size().height/2.0,
+		regionHeight = img.size().height,
+		regionWidth = img.size().width;
+
 	size_t idx;
-	size_t yBestMatchCandidateIdx;
 	for( idx = 0; idx < candCnt; ++idx )
 	{
-		dy_tmp = abs( regionHalfHeight - keyPoints[idx].pt.y );
-		if ( dy_tmp < dy )
-		{
-			dy = dy_tmp;
-			yBestMatchCandidateIdx = idx;
-		}
+		candidateTotalError[idx] = abs( regionHalfHeight - keyPoints[idx].pt.y )/regionHeight;
 	}
 
-	float dx = 0;
-	size_t xBestMatchCandidateIdx;
 	// We assume that left eyebrow will be to the most right
 	// posiotion as on most left there will be shadows of hair and etc.
 	if ( flag == EyebrowCandidateFlags::LEFT )
 	{
 		for( idx = 0; idx < candCnt; ++idx )
-		{
-			if ( dx < keyPoints[idx].pt.x )
-			{
-				dx = keyPoints[idx].pt.x;
-				xBestMatchCandidateIdx = idx;
-			}
-		}
+			candidateTotalError[idx] += abs( regionWidth - keyPoints[idx].pt.x )/regionWidth;
 	}
 	else if ( flag == EyebrowCandidateFlags::RIGHT )
 	{
-		dx = numeric_limits<float>::max();
 		for( idx = 0; idx < candCnt; ++idx )
-		{
-			if ( dx > keyPoints[idx].pt.x )
-			{
-				dx = keyPoints[idx].pt.x;
-				xBestMatchCandidateIdx = idx;
-			}
-		}
+			candidateTotalError[idx] += keyPoints[idx].pt.x/regionWidth;
 	}
 	else { return; }
 
-	if ( xBestMatchCandidateIdx != yBestMatchCandidateIdx )
+	float err = numeric_limits<float>::max();
+	size_t bestMatchCandidateIdx;
+	for( idx = 0; idx < candCnt; ++idx )
 	{
-		copy( candidates[xBestMatchCandidateIdx].begin(), candidates[xBestMatchCandidateIdx].end(), back_inserter(bestMatch));
-		center = keyPoints[xBestMatchCandidateIdx].pt;
+		if ( candidateTotalError[idx] < err )
+		{
+			err = candidateTotalError[idx];
+			bestMatchCandidateIdx = idx;
+		}
 	}
-	else
-	{
-		copy( candidates[xBestMatchCandidateIdx].begin(), candidates[xBestMatchCandidateIdx].end(), back_inserter(bestMatch));
-		center = keyPoints[xBestMatchCandidateIdx].pt;
-	}
+
+	copy( candidates[bestMatchCandidateIdx].begin(), candidates[bestMatchCandidateIdx].end(), back_inserter(bestMatch));
+	center = keyPoints[bestMatchCandidateIdx].pt;
 
 	return;
 }

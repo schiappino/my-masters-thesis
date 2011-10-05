@@ -51,50 +51,14 @@ void DetectEyebrows()
 		
 		offset.x = eyesbrowsROI.x + eyesbrowsROI.width*0.1;
 		offset.y = eyesbrowsROI.y;
-		BlobDetector( leftEybrowSmoothedRed, eyebrowCandidates );
+		blobDetector( leftEybrowSmoothedRed, eyebrowCandidates );
 		drawEyebrow( imgProcessed, eyebrowCandidates, offset );
 
 		offset.x = eyesbrowsROI.x + eyesbrowsROI.width*0.5;
-		BlobDetector( rightEybrowSmoothedRed, eyebrowCandidates );
+		blobDetector( rightEybrowSmoothedRed, eyebrowCandidates );
 		drawEyebrow( imgProcessed, eyebrowCandidates, offset );
 
 		imshow( wndNameFace, imgProcessed );
-
-		//Mat imgEyebrowsGradientY,
-		//	imgEyebrowsGradientYABS;
-
-		//Sobel( redSmoothed, imgEyebrowsGradientY, CV_16S, 0, 1, 3 );
-		//convertScaleAbs( imgEyebrowsGradientY, imgEyebrowsGradientYABS );
-
-		//imshow( "Sobel derrivative", imgEyebrowsGradientYABS );
-
-
-		//Mat kernel = getStructuringElement( CV_SHAPE_ELLIPSE, Size(3,3) );
-		//Mat kernel5 = getStructuringElement( CV_SHAPE_ELLIPSE, Size(5,5) );
-		//morphologyEx( leftSmoothed, leftSmoothed,	CV_MOP_CLOSE,	kernel, Point(-1,-1), 1 );
-		//morphologyEx( leftSmoothed, leftSmoothed,	CV_MOP_OPEN,	kernel, Point(-1,-1), 1 );
-		//morphologyEx( rightSmoothed, rightSmoothed, CV_MOP_CLOSE,	kernel, Point(-1,-1), 1 );
-		//morphologyEx( rightSmoothed, rightSmoothed, CV_MOP_OPEN,	kernel, Point(-1,-1), 1 );
-
-		//threshold( leftSmoothed, leftThresh, eyebrowThreshold, 255, CV_THRESH_BINARY );
-		//threshold( rightSmoothed, rightThresh, eyebrowThreshold, 255, CV_THRESH_BINARY );
-		//threshold( redSmoothed, redThresh, eyebrowThreshold, 255, CV_THRESH_BINARY );
-		//threshold( imgEyebrowsGradientYABS, imgEyebrowsGradientYABS, eyebrowThreshold, 255, CV_THRESH_BINARY );
-
-		//imshow( "Gradient thresh", imgEyebrowsGradientYABS );
-		//imshow( "red thresh", redThresh );
-
-		//imshow( "Left smoothed", leftSmoothed );
-		//imshow( "Right smoothed", rightSmoothed );
-
-		//imshow( "Left thr", leftThresh );
-		//imshow( "Right thr", rightThresh );
-
-		//// After thresholding red channel gradient perform morphology
-		//Mat redMorph;
-		//morphologyEx( imgEyebrowsGradientYABS, redMorph, CV_MOP_CLOSE,	kernel5, Point(-1,-1), eyebrowMorph );
-		//imshow( "Red gradient morphology", redMorph );
-
 	}
 };
 void drawEyebrow( Mat img, vector <vector <Point>>& eyebrowCandidates, Point offset = Point() )
@@ -175,7 +139,7 @@ void drawEyebrow( Mat img, vector <vector <Point>>& eyebrowCandidates, Point off
 	line( img, leftMostPoint, midllePoint, CV_RGB(0,0,255), 4 );
 	line( img, rightMostPoint, midllePoint, CV_RGB(0,0,255), 4 );
 }
-void BlobDetector( Mat src, vector <vector <Point>>& candidates )
+void blobDetector( Mat src, vector <vector <Point>>& candidates )
 {
 	candidates.clear();
 	Mat out;

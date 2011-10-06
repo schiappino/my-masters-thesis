@@ -34,13 +34,11 @@ double calcExecTime( double* time );
 bool loadFileList( const char* fileName );
 void displayStats();
 // ****************************** CORE *************************************
-inline void exponentialOperator( Mat src, Mat dst );
+void exponentialOperator( Mat src, Mat dst );
 int Init(void);
 int ExitNicely(int code);
 bool DetectFaces(void);
-void EyeTemplateMatching( Mat src, Mat disp, Mat templ, int irisRadius);
 void ColorSegment( vector<Mat> color_planes, Rect roi );
-void DetectEyes(void);
 void DetectMouth(void);
 void ProcessAlgorithm(void);
 // ********************** GUI ***********************************************

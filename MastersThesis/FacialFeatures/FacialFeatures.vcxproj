@@ -77,10 +77,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Eyebrows.cpp" />
+    <ClCompile Include="Eyes.cpp" />
     <ClCompile Include="FacialFeatures.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Eyebrows.h" />
+    <ClInclude Include="Eyes.h" />
     <ClInclude Include="FacialFeatures.h" />
     <ClInclude Include="Globals.h" />
   </ItemGroup>

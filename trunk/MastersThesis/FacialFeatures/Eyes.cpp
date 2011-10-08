@@ -51,7 +51,6 @@ void DetectEyes()
 		Mat imgEyeLeftGray	( imgGray, eyeLeftROI ),
 			imgEyeRightGray ( imgGray, eyeRightROI );
 
-	
 		cascadeEyeLeft.detectMultiScale( imgEyeLeftGray,	eyesLeft, 1.2, 3, CV_HAAR_FIND_BIGGEST_OBJECT );
 		cascadeEyeRight.detectMultiScale( imgEyeRightGray, eyesRight, 1.2, 3, CV_HAAR_FIND_BIGGEST_OBJECT );
 		
@@ -75,10 +74,10 @@ void DetectEyes()
 					CV_RGB(0, 0, 0)
 				);
 			}
+			// Show on processed parts of image where eyes have been found
+			imshow( "Left", imgProcessedWithLeftEye );
+			imshow( "Right", imgProcessedWithRightEye );
 		#endif
-
-		imshow( "Left", imgProcessedWithLeftEye );
-		imshow( "Right", imgProcessedWithRightEye );
 
 		Mat imgRedCopy;
 		rgb_planes[0].copyTo( imgRedCopy );
@@ -94,37 +93,41 @@ void DetectEyes()
 
 		if( eyesRight.size() )
 		{
-			Mat imgFoundRightEye ( imgEyeRight, eyesRight[0] );
-			imshow( "Found eye right", imgEyeRight );
-			Mat imgProcessedFoundRightEye ( imgProcessedWithRightEye, eyesRight[0] );
-			EyeTemplateMatching( imgEyeRight, imgProcessedFoundRightEye, imgTempl, irisRadiusMax );
+			Rect foundROI = Rect( eyesRight[0].x, eyesRight[0].y, eyesRight[0].width, eyesRight[0].height ); 
+			Mat imgFoundRightEye ( imgEyeRight, foundROI );
+			imshow( "Found eye right", imgFoundRightEye );
+			Mat imgProcessedFoundRightEye ( imgProcessedWithRightEye, foundROI );
+			EyeTemplateMatching( imgFoundRightEye, imgProcessedFoundRightEye, imgTempl, irisRadiusMax );
 		}
 		if( eyesLeft.size() )
 		{
-			Mat imgFoundLeftEye ( imgEyeLeft, eyesLeft[0] );
-			imshow( "Found eye left", imgEyeLeft );
-			Mat imgProcessedFoundLeftEye ( imgProcessedWithLeftEye, eyesLeft[0] );
-			EyeTemplateMatching( imgEyeLeft, imgProcessedFoundLeftEye, imgTempl, irisRadiusMax );
+			Rect foundROI = Rect( eyesLeft[0].x, eyesLeft[0].y, eyesLeft[0].width, eyesLeft[0].height ); 
+			Mat imgFoundLeftEye ( imgEyeLeft, foundROI );
+			imshow( "Found eye left", imgFoundLeftEye );
+			Mat imgProcessedFoundLeftEye ( imgProcessedWithLeftEye, foundROI );
+			EyeTemplateMatching( imgFoundLeftEye, imgProcessedFoundLeftEye, imgTempl, irisRadiusMax );
 		}
 		#endif
 
-		Mat imgRedCopy;
-		rgb_planes[0].copyTo( imgRedCopy );
+		#ifdef EYES_DETECT_NO_CASCADE
+			Mat imgRedCopy;
+			rgb_planes[0].copyTo( imgRedCopy );
 
-		Mat imgEyes		( imgRedCopy, eyesROI );
-		Mat imgEyeLeft	( imgRedCopy, eyeLeftROI ),
-			imgEyeRight ( imgRedCopy, eyeRightROI );
+			Mat imgEyes		( imgRedCopy, eyesROI );
+			Mat imgEyeLeft	( imgRedCopy, eyeLeftROI ),
+				imgEyeRight ( imgRedCopy, eyeRightROI );
 
-		equalizeHist( imgEyeRight, imgEyeRight );
-		equalizeHist( imgEyeLeft, imgEyeLeft );
-		bitwise_not( imgEyes, imgEyes );
-		exponentialOperator( imgEyes, imgEyes );
-		imshow( wndNameEyesExpTrans, imgEyes );
+			equalizeHist( imgEyeRight, imgEyeRight );
+			equalizeHist( imgEyeLeft, imgEyeLeft );
+			bitwise_not( imgEyes, imgEyes );
+			exponentialOperator( imgEyes, imgEyes );
+			imshow( wndNameEyesExpTrans, imgEyes );
 
-		Mat imgProcessedLeftEye ( imgProcessed, eyeLeftROI ),
-			imgProcessedRightEye ( imgProcessed, eyeRightROI );
-		EyeTemplateMatching( imgEyeLeft, imgProcessedLeftEye, imgTempl, irisRadiusMax );
-		EyeTemplateMatching( imgEyeRight, imgProcessedRightEye, imgTempl, irisRadiusMax );
+			Mat imgProcessedLeftEye ( imgProcessed, eyeLeftROI ),
+				imgProcessedRightEye ( imgProcessed, eyeRightROI );
+			EyeTemplateMatching( imgEyeLeft, imgProcessedLeftEye, imgTempl, irisRadiusMax );
+			EyeTemplateMatching( imgEyeRight, imgProcessedRightEye, imgTempl, irisRadiusMax );
+		#endif
 
 		#ifdef EYES_DETECT_HOUGH_TRANSFORM
 		// --> Hough Circle transform for iris detection
@@ -174,7 +177,6 @@ void DetectEyes()
 		#endif
 	}
 };
-
 void EyeTemplateMatching( Mat src, Mat disp, Mat templ, int irisRadius)
 {
 	Mat result;

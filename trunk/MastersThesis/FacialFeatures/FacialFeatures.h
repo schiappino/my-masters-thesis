@@ -22,7 +22,7 @@ using namespace cv;
 #define EYES_DETECT_MULTI_CASCADE
 //#define EYES_DETECT_HOUGH_TRANSFORM
 //#define EYES_DETECT_CONNECTED_COMP
-#define EYES_TEMPLATE_MATCH_DEBUG
+//#define EYES_TEMPLATE_MATCH_DEBUG
 
 
 // ********************* FUNCTION DECLARATIONS ******************************

@@ -44,7 +44,7 @@ void InitGUI()
 	//namedWindow( wndNameEyesExpTrans, flags );
 	//namedWindow( wndNameBilateral, flags );
 	//namedWindow( wndNameTemplRes, flags );
-	namedWindow( wndNameBlobs, flags );
+	//namedWindow( wndNameBlobs, flags );
 
 	createTrackbar( trckbarMouthThresh, wndNameMouth, &mouthThreshold, 255, onThresholdTrackbar );
 	createTrackbar( trckbarbilateralBlur, "", &bilatBlurVal, 20, onBilateralBlur );

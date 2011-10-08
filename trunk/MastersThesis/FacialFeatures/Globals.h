@@ -89,6 +89,7 @@ extern int
 	HoughMinDist,
 	TemplMatchMet,
 	eyebrowMorph,
+	maxCorners,
 
 
 	mouthThreshold,
@@ -123,6 +124,7 @@ extern const char
 	* wndNameEyesThresh,
 	* wndNameTemplRes,
 	* wndNameBlobs,
+	* wndNameCorners,
 
 	* trckbarMouthThresh,
 	* trckbarbilateralBlur,

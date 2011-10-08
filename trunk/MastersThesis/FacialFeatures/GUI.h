@@ -9,6 +9,7 @@ void onHough_dp( int val, void* );
 void onTemplateMatchingMet( int val, void* );
 void onEyebrowThresh( int val, void* );
 void onEyebrowMorph( int val, void* );
+void onMaxCorners( int val, void* );
 void InitGUI();
 void handleKeyboard( char c );
 inline void putTextWithShadow(Mat& img, const char *str, Point org );

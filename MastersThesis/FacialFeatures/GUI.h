@@ -11,6 +11,6 @@ void onEyebrowThresh( int val, void* );
 void onEyebrowMorph( int val, void* );
 void InitGUI();
 void handleKeyboard( char c );
-inline void putTextWithShadow(Mat& img, const char *str, Point org, CvScalar color = CV_RGB(0, 255, 100) );
+inline void putTextWithShadow(Mat& img, const char *str, Point org );
 inline string getCurentFileName( string filePath );
 void displayStats();

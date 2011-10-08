@@ -79,10 +79,10 @@ void handleKeyboard( char c )
 		imgSrc = imread( imgFileList.at( imIt ));
 	}
 }
-inline void putTextWithShadow(Mat& img, const char *str, Point org, CvScalar color )
+void putTextWithShadow(Mat& img, const char *str, Point org )
 {
 	putText( img, str, Point(org.x -1, org.y-1), FONT_HERSHEY_PLAIN, 1, CV_RGB(50, 50, 50), 2 );
-	putText( img, str, org, FONT_HERSHEY_PLAIN, 1, color );
+	putText( img, str, org, FONT_HERSHEY_PLAIN, 1, CV_RGB(0, 255, 100) );
 };
 inline string getCurentFileName( string filePath )
 {

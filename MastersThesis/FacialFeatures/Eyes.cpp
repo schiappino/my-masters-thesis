@@ -45,18 +45,23 @@ void DetectEyes()
 		}
 		#endif
 		#ifdef EYES_DETECT_MULTI_CASCADE
-		// TEMPORARY APPROACH: detecting eye pos in two passes		
+		// Vectors which will store results of Haar Detector
 		vector<Rect> eyesLeft,
 					 eyesRight;
+
+		// Gray images for each eye used in Haar Detector
 		Mat imgEyeLeftGray	( imgGray, eyeLeftROI ),
 			imgEyeRightGray ( imgGray, eyeRightROI );
 
+		// Runs Haar Detector
 		cascadeEyeLeft.detectMultiScale( imgEyeLeftGray,	eyesLeft, 1.2, 2, CV_HAAR_FIND_BIGGEST_OBJECT );
 		cascadeEyeRight.detectMultiScale( imgEyeRightGray, eyesRight, 1.2, 2, CV_HAAR_FIND_BIGGEST_OBJECT );
 		
+		// RGB images for each eye used for output drawing
 		Mat imgProcessedWithRightEye ( imgProcessed, eyeRightROI ),
 			imgProcessedWithLeftEye	 ( imgProcessed, eyeLeftROI );
 		
+		// Draw found ROIs by Haar
 		#ifdef EYE_DETECT_ROI_DEBUG
 			for( int i = 0; i < (int)eyesRight.size(); ++i )
 			{
@@ -115,7 +120,6 @@ void DetectEyes()
 			Mat imgProcessedLeftEye ( imgProcessed, eyeLeftROI );
 			EyeTemplateMatching( imgEyeLeft, imgProcessedLeftEye, imgTempl, irisRadiusMax );
 		}
-
 		#endif
 	}
 };

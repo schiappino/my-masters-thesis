@@ -51,13 +51,13 @@ void DetectEyes()
 		Mat imgEyeLeftGray	( imgGray, eyeLeftROI ),
 			imgEyeRightGray ( imgGray, eyeRightROI );
 
-		cascadeEyeLeft.detectMultiScale( imgEyeLeftGray,	eyesLeft, 1.2, 3, CV_HAAR_FIND_BIGGEST_OBJECT );
-		cascadeEyeRight.detectMultiScale( imgEyeRightGray, eyesRight, 1.2, 3, CV_HAAR_FIND_BIGGEST_OBJECT );
+		cascadeEyeLeft.detectMultiScale( imgEyeLeftGray,	eyesLeft, 1.2, 2, CV_HAAR_FIND_BIGGEST_OBJECT );
+		cascadeEyeRight.detectMultiScale( imgEyeRightGray, eyesRight, 1.2, 2, CV_HAAR_FIND_BIGGEST_OBJECT );
 		
 		Mat imgProcessedWithRightEye ( imgProcessed, eyeRightROI ),
 			imgProcessedWithLeftEye	 ( imgProcessed, eyeLeftROI );
 		
-		#ifdef EYE_DETECT_DEBUG
+		#ifdef EYE_DETECT_ROI_DEBUG
 			for( int i = 0; i < (int)eyesRight.size(); ++i )
 			{
 				rectangle( imgProcessedWithRightEye,
@@ -93,20 +93,29 @@ void DetectEyes()
 
 		if( eyesRight.size() )
 		{
-			Rect foundROI = Rect( eyesRight[0].x, eyesRight[0].y, eyesRight[0].width, eyesRight[0].height ); 
+			Rect foundROI = eyesRight[0];
 			Mat imgFoundRightEye ( imgEyeRight, foundROI );
 			imshow( "Found eye right", imgFoundRightEye );
 			Mat imgProcessedFoundRightEye ( imgProcessedWithRightEye, foundROI );
 			EyeTemplateMatching( imgFoundRightEye, imgProcessedFoundRightEye, imgTempl, irisRadiusMax );
+		} else {
+			// if right eye is not found then try templ match on bigger ROI
+			Mat imgProcessedRightEye ( imgProcessed, eyeRightROI );
+			EyeTemplateMatching( imgEyeRight, imgProcessedRightEye, imgTempl, irisRadiusMax );
 		}
 		if( eyesLeft.size() )
 		{
-			Rect foundROI = Rect( eyesLeft[0].x, eyesLeft[0].y, eyesLeft[0].width, eyesLeft[0].height ); 
+			Rect foundROI = eyesLeft[0];
 			Mat imgFoundLeftEye ( imgEyeLeft, foundROI );
 			imshow( "Found eye left", imgFoundLeftEye );
 			Mat imgProcessedFoundLeftEye ( imgProcessedWithLeftEye, foundROI );
 			EyeTemplateMatching( imgFoundLeftEye, imgProcessedFoundLeftEye, imgTempl, irisRadiusMax );
+		} else { 
+			// if left eye is not found then try templ match on bigger ROI
+			Mat imgProcessedLeftEye ( imgProcessed, eyeLeftROI );
+			EyeTemplateMatching( imgEyeLeft, imgProcessedLeftEye, imgTempl, irisRadiusMax );
 		}
+
 		#endif
 
 		#ifdef EYES_DETECT_NO_CASCADE

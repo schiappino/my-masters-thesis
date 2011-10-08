@@ -5,10 +5,10 @@
   <PropertyGroup />
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(OPENCV_DIR)\src\opencv\include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OPENCVDIR)\src\opencv\include;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(OPENCV_DIR)\buildQt\lib\Release;</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(OPENCVDIR)\build tbb qt\lib\Release;</AdditionalLibraryDirectories>
       <AdditionalDependencies>opencv_core231.lib;opencv_imgproc231.lib;opencv_highgui231.lib;opencv_ml231.lib;opencv_video231.lib;opencv_features2d231.lib;opencv_calib3d231.lib;opencv_objdetect231.lib;opencv_contrib231.lib;opencv_legacy231.lib;opencv_flann231.lib;</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>

@@ -79,12 +79,14 @@
     <ClCompile Include="Eyebrows.cpp" />
     <ClCompile Include="Eyes.cpp" />
     <ClCompile Include="FacialFeatures.cpp" />
+    <ClCompile Include="Mouth.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Eyebrows.h" />
     <ClInclude Include="Eyes.h" />
     <ClInclude Include="FacialFeatures.h" />
     <ClInclude Include="Globals.h" />
+    <ClInclude Include="Mouth.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

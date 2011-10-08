@@ -48,39 +48,72 @@ void DetectEyes()
 		// TEMPORARY APPROACH: detecting eye pos in two passes		
 		vector<Rect> eyesLeft,
 					 eyesRight;
-		Mat imgEyeLeft	( imgGray, eyeLeftROI ),
-			imgEyeRight ( imgGray, eyeRightROI );
+		Mat imgEyeLeftGray	( imgGray, eyeLeftROI ),
+			imgEyeRightGray ( imgGray, eyeRightROI );
+
+	
+		cascadeEyeLeft.detectMultiScale( imgEyeLeftGray,	eyesLeft, 1.2, 3, CV_HAAR_FIND_BIGGEST_OBJECT );
+		cascadeEyeRight.detectMultiScale( imgEyeRightGray, eyesRight, 1.2, 3, CV_HAAR_FIND_BIGGEST_OBJECT );
 		
-		cascadeEyeLeft.detectMultiScale( imgEyeLeft,	eyesLeft, 1.1, 3, CV_HAAR_FIND_BIGGEST_OBJECT );
-		cascadeEyeRight.detectMultiScale( imgEyeRight, eyesRight, 1.1, 3, CV_HAAR_FIND_BIGGEST_OBJECT );
+		Mat imgProcessedWithRightEye ( imgProcessed, eyeRightROI ),
+			imgProcessedWithLeftEye	 ( imgProcessed, eyeLeftROI );
 		
-		Mat imgProcessedWithRightEye ( imgGray, eyeRightROI ),
-			imgProcessedWithLeftEye	 ( imgGray, eyeLeftROI );
-		
-		for( int i = 0; i < (int)eyesRight.size(); ++i )
-		{
-			rectangle( imgProcessedWithRightEye,
-				Point( eyesRight[i].x, eyesRight[i].y),
-				Point( eyesRight[i].x + eyesRight[i].width, eyesRight[i].y + eyesRight[i].height),
-				CV_RGB(0, 0, 0)
-			);
-		}
-		for( int i = 0; i < (int)eyesLeft.size(); ++i )
-		{
-			rectangle( imgProcessedWithLeftEye,
-				Point( eyesLeft[i].x, eyesLeft[i].y),
-				Point( eyesLeft[i].x + eyesLeft[i].width, eyesLeft[i].y + eyesLeft[i].height),
-				CV_RGB(0, 0, 0)
-			);
-		}
+		#ifdef EYE_DETECT_DEBUG
+			for( int i = 0; i < (int)eyesRight.size(); ++i )
+			{
+				rectangle( imgProcessedWithRightEye,
+					Point( eyesRight[i].x, eyesRight[i].y),
+					Point( eyesRight[i].x + eyesRight[i].width, eyesRight[i].y + eyesRight[i].height),
+					CV_RGB(0, 0, 0)
+				);
+			}
+			for( int i = 0; i < (int)eyesLeft.size(); ++i )
+			{
+				rectangle( imgProcessedWithLeftEye,
+					Point( eyesLeft[i].x, eyesLeft[i].y),
+					Point( eyesLeft[i].x + eyesLeft[i].width, eyesLeft[i].y + eyesLeft[i].height),
+					CV_RGB(0, 0, 0)
+				);
+			}
+		#endif
 
 		imshow( "Left", imgProcessedWithLeftEye );
 		imshow( "Right", imgProcessedWithRightEye );
+
+		Mat imgRedCopy;
+		rgb_planes[0].copyTo( imgRedCopy );
+		Mat imgEyes ( imgRedCopy, eyesROI );
+
+		Mat imgEyeLeft ( imgRedCopy, eyeLeftROI );
+		Mat imgEyeRight (imgRedCopy, eyeRightROI );
+
+		equalizeHist( imgEyeLeft, imgEyeLeft );
+		equalizeHist( imgEyeRight, imgEyeRight );
+		bitwise_not( imgEyes, imgEyes );
+		exponentialOperator( imgEyes, imgEyes);
+
+		if( eyesRight.size() )
+		{
+			Mat imgFoundRightEye ( imgEyeRight, eyesRight[0] );
+			imshow( "Found eye right", imgEyeRight );
+			Mat imgProcessedFoundRightEye ( imgProcessedWithRightEye, eyesRight[0] );
+			EyeTemplateMatching( imgEyeRight, imgProcessedFoundRightEye, imgTempl, irisRadiusMax );
+		}
+		if( eyesLeft.size() )
+		{
+			Mat imgFoundLeftEye ( imgEyeLeft, eyesLeft[0] );
+			imshow( "Found eye left", imgEyeLeft );
+			Mat imgProcessedFoundLeftEye ( imgProcessedWithLeftEye, eyesLeft[0] );
+			EyeTemplateMatching( imgEyeLeft, imgProcessedFoundLeftEye, imgTempl, irisRadiusMax );
+		}
 		#endif
-		
-		Mat imgEyes		( rgb_planes[0], eyesROI );
-		Mat imgEyeLeft	( rgb_planes[0], eyeLeftROI ),
-			imgEyeRight ( rgb_planes[0], eyeRightROI );
+
+		Mat imgRedCopy;
+		rgb_planes[0].copyTo( imgRedCopy );
+
+		Mat imgEyes		( imgRedCopy, eyesROI );
+		Mat imgEyeLeft	( imgRedCopy, eyeLeftROI ),
+			imgEyeRight ( imgRedCopy, eyeRightROI );
 
 		equalizeHist( imgEyeRight, imgEyeRight );
 		equalizeHist( imgEyeLeft, imgEyeLeft );

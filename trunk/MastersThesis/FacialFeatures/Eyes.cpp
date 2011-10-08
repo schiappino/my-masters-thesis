@@ -100,9 +100,12 @@ void DetectEyes()
 		{
 			Rect foundROI = eyesRight[0];
 			Mat imgFoundRightEye ( imgEyeRight, foundROI );
-			imshow( "Found eye right", imgFoundRightEye );
 			Mat imgProcessedFoundRightEye ( imgProcessedWithRightEye, foundROI );
 			EyeTemplateMatching( imgFoundRightEye, imgProcessedFoundRightEye, imgTempl, irisRadiusMax );
+
+			#ifdef EYES_DETECT_DEBUG
+				imshow( "Found eye right", imgFoundRightEye );
+			#endif
 		} else {
 			// if right eye is not found then try templ match on bigger ROI
 			Mat imgProcessedRightEye ( imgProcessed, eyeRightROI );
@@ -112,9 +115,12 @@ void DetectEyes()
 		{
 			Rect foundROI = eyesLeft[0];
 			Mat imgFoundLeftEye ( imgEyeLeft, foundROI );
-			imshow( "Found eye left", imgFoundLeftEye );
 			Mat imgProcessedFoundLeftEye ( imgProcessedWithLeftEye, foundROI );
 			EyeTemplateMatching( imgFoundLeftEye, imgProcessedFoundLeftEye, imgTempl, irisRadiusMax );
+
+			#ifdef EYES_DETECT_DEBUG
+				imshow( "Found eye left", imgFoundLeftEye );
+			#endif
 		} else { 
 			// if left eye is not found then try templ match on bigger ROI
 			Mat imgProcessedLeftEye ( imgProcessed, eyeLeftROI );

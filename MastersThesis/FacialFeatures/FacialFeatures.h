@@ -16,12 +16,13 @@ using namespace cv;
 #define IMM_DB_SIZE	250
 
 #define FACE_DETECT_DEBUG
-//#define _MOUTH_ROI_DEBUG
-#define EYES_DETECT_SINGLE_CASCADE
+#define EYE_DETECT_DEBUG
+//#define MOUTH_ROI_DEBUG
+//#define EYES_DETECT_SINGLE_CASCADE
 //#define EYES_DETECT_MULTI_CASCADE
 //#define EYES_DETECT_HOUGH_TRANSFORM
 //#define EYES_DETECT_CONNECTED_COMP
-//#define EYES_TEMPLATE_MATCH_DEBUG
+#define EYES_TEMPLATE_MATCH_DEBUG
 
 
 // ********************* FUNCTION DECLARATIONS ******************************
@@ -39,7 +40,6 @@ int Init(void);
 int ExitNicely(int code);
 bool DetectFaces(void);
 void ColorSegment( vector<Mat> color_planes, Rect roi );
-void DetectMouth(void);
 void ProcessAlgorithm(void);
 // ********************** GUI ***********************************************
 void onThresholdTrackbar( int val, void* );

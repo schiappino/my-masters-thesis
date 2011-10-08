@@ -110,6 +110,7 @@ void DetectEyes()
 		}
 		if( eyesLeft.size() )
 		{
+			Mat(); // dummy line for testing keyboard shortcut
 			Rect foundROI = eyesLeft[0];
 			Mat imgFoundLeftEye ( imgEyeLeft, foundROI );
 			imshow( "Found eye left", imgFoundLeftEye );

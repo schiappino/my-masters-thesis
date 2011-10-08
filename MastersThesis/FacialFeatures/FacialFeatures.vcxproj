@@ -79,6 +79,7 @@
     <ClCompile Include="Eyebrows.cpp" />
     <ClCompile Include="Eyes.cpp" />
     <ClCompile Include="FacialFeatures.cpp" />
+    <ClCompile Include="GUI.cpp" />
     <ClCompile Include="Mouth.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -86,6 +87,7 @@
     <ClInclude Include="Eyes.h" />
     <ClInclude Include="FacialFeatures.h" />
     <ClInclude Include="Globals.h" />
+    <ClInclude Include="GUI.h" />
     <ClInclude Include="Mouth.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

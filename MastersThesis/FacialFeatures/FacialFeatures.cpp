@@ -76,15 +76,16 @@ vector<Mat> rgb_planes,
 int                     
         counter         = 0,
         posRes          = 0,
-        object_size             = 0,
-        face_size               = 0,
+        object_size     = 0,
+        face_size       = 0,
         scale           = 1,
-        imIt                    = 0,    // image list literator
-        z                               = 10,
-        Hough_dp                = 2,
+        imIt			= 0,    // image list literator
+        z				= 10,
+        Hough_dp		= 2,
         HoughMinDist    = 50,
         TemplMatchMet   = 4,
         eyebrowMorph    = 1,
+		maxCorners		= 20,
 
 
         mouthThreshold  = 0,
@@ -119,6 +120,7 @@ const char
         * wndNameEyesThresh      = "Eyes threshold",
         * wndNameTemplRes = "Template Match Res",
         * wndNameBlobs = "Blobs",
+		* wndNameCorners = "Corners",
 
         * trckbarMouthThresh = "Mouth THR",
         * trckbarbilateralBlur = "Bilatera blur",
@@ -324,12 +326,12 @@ void ProcessAlgorithm()
 	if( isFace )
 	{
 		eyes_exec_time = startTime();
-		DetectEyes();
+		//DetectEyes();
 		calcExecTime( &eyes_exec_time );
 		cout << "eyes detect\t\t" << (int)eyes_exec_time << " ms" << endl;
 
 		mouth_exec_time = startTime();
-		//DetectMouth();
+		DetectMouth();
 		calcExecTime( &mouth_exec_time );
 		cout << "mouth detect\t\t" << (int)mouth_exec_time << " ms" << endl;
 		

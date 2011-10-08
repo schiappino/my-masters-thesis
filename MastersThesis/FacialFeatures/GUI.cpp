@@ -32,6 +32,10 @@ void onEyebrowMorph( int val, void* )
 {
 	eyebrowMorph = val;
 };
+void onMaxCorners( int val, void* )
+{
+	maxCorners = val;
+};
 void InitGUI()
 {
 	int flags = CV_WINDOW_KEEPRATIO | CV_GUI_EXPANDED;
@@ -45,6 +49,7 @@ void InitGUI()
 	//namedWindow( wndNameBilateral, flags );
 	//namedWindow( wndNameTemplRes, flags );
 	//namedWindow( wndNameBlobs, flags );
+	namedWindow( wndNameCorners, flags );
 
 	createTrackbar( trckbarMouthThresh, wndNameMouth, &mouthThreshold, 255, onThresholdTrackbar );
 	createTrackbar( trckbarbilateralBlur, "", &bilatBlurVal, 20, onBilateralBlur );
@@ -54,6 +59,7 @@ void InitGUI()
 	createTrackbar( "Templ Match Met", "", &TemplMatchMet, 5, onTemplateMatchingMet );
 	createTrackbar( "Eyebrow THR", "", &eyebrowThreshold, 255, onEyebrowThresh );
 	createTrackbar( "Eyebrow Morphology", "", &eyebrowMorph, 10, onEyebrowMorph );
+	createTrackbar( "Mouth Corners", "", &maxCorners, 100, onMaxCorners);
 };
 void handleKeyboard( char c )
 {

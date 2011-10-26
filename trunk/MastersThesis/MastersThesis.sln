@@ -7,6 +7,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FacialFeatures", "FacialFea
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test", "Test\Test.vcxproj", "{DEB0B0D9-A6FB-4F9E-9811-AD73325A4A41}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ImageAnnotator", "ImageAnnotator\ImageAnnotator.vcxproj", "{0B334AFB-8450-49CA-8B32-CDE938EB0569}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FaceDetectionValidation", "FaceDetectionValidation\FaceDetectionValidation.vcxproj", "{6D09F362-79CA-4DDA-AD3A-3750BEC05ED4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -25,6 +29,14 @@ Global
 		{DEB0B0D9-A6FB-4F9E-9811-AD73325A4A41}.Debug|Win32.Build.0 = Debug|Win32
 		{DEB0B0D9-A6FB-4F9E-9811-AD73325A4A41}.Release|Win32.ActiveCfg = Release|Win32
 		{DEB0B0D9-A6FB-4F9E-9811-AD73325A4A41}.Release|Win32.Build.0 = Release|Win32
+		{0B334AFB-8450-49CA-8B32-CDE938EB0569}.Debug|Win32.ActiveCfg = Debug|Win32
+		{0B334AFB-8450-49CA-8B32-CDE938EB0569}.Debug|Win32.Build.0 = Debug|Win32
+		{0B334AFB-8450-49CA-8B32-CDE938EB0569}.Release|Win32.ActiveCfg = Release|Win32
+		{0B334AFB-8450-49CA-8B32-CDE938EB0569}.Release|Win32.Build.0 = Release|Win32
+		{6D09F362-79CA-4DDA-AD3A-3750BEC05ED4}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6D09F362-79CA-4DDA-AD3A-3750BEC05ED4}.Debug|Win32.Build.0 = Debug|Win32
+		{6D09F362-79CA-4DDA-AD3A-3750BEC05ED4}.Release|Win32.ActiveCfg = Release|Win32
+		{6D09F362-79CA-4DDA-AD3A-3750BEC05ED4}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -74,7 +74,8 @@ int main( int argc, char** argv )
 	Size dst_size;
 	Mat imsrc,
 		imgray,
-		imout;
+		imout,
+		imface;
 	ofstream csv;
 
 	if( argc == 3 || argc == 4 )
@@ -157,15 +158,9 @@ int main( int argc, char** argv )
 					
 					if( extended_mode )
 					{
-						for( int f = 0; f < faces.size(); ++f )
-						{
-							Point pt1 = Point( faces[f].x, faces[f].y );
-							Point pt2 = Point( faces[f].x + faces[f].width, faces[f].y + faces[f].height );
-							rectangle( imout, pt1, pt2, CV_RGB(241, 236, 27), 3 );
-
-							sprintf_s( name, "results\\WS-%f db-%d im-%d-%d.jpg", scale, k+1, i+1, f+1 );
-							imwrite( name, imout );
-						}
+						sprintf_s( name, "results\\db-%d im-%d ws-%1.2f.jpg", k+1, i+1, scale );
+						Mat imface ( imout, faces[0] );
+						imwrite( name, imface );
 					}
 				}
 			}

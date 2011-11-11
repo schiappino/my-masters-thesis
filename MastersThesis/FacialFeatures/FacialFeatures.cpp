@@ -17,7 +17,8 @@ const char* cascadeFNameMouth                   = "../data/cascades/haarcascade_
 
 // ********************************** IMAGE FILES *******************************************
 const char* IMMFaceDBFile                               = "../data/facedb/imm/filelist.txt";
-const char* ColorFeretDBFile                    = "../data/facedb/color feret/filelist.txt";
+const char* ColorFeretDBFile							= "../data/facedb/color feret/filelist.txt";
+extern const char* ColorFeretDBFile_fa					= "../data/facedb/color feret/filelist_fa.txt";
 const char* eyeTemplateFile                             = "../data/images/eye_template4.bmp";
 
 // *********************************** VIDEO FILES ******************************************
@@ -25,7 +26,7 @@ const char* VideoSequences                              = "../data/video sequenc
 const char* VideoSequence1                              = "../data/video sequences/VIDEO0020.3gp";
 
 // ****************************** GLOBALS ***************************************************
-const int PROGRAM_MODE = 2;
+const int PROGRAM_MODE = 1;
 
 const double K_EXP_OPERATOR = 0.0217304452751310829264530948549876073716129212732431841605;
 
@@ -158,7 +159,10 @@ bool loadFileList( const char* fileName )
 
 	in.open( fileName );
 	if( !in )
+	{
+		cout << "--(!) Cannot read input file list" << endl;
 		return false;
+	}
 
 	while( !in.eof() )
 	{
@@ -169,7 +173,10 @@ bool loadFileList( const char* fileName )
 	if( imgFileList.size() > 0 )
 		return true;
 	else
+	{
+		cout << "--(!) Cannot read input file list" << endl;
 		return false;
+	}
 }
 
 int Init()
@@ -178,7 +185,7 @@ int Init()
 	imgFileList.reserve( COLOR_FERET_DB_SIZE );
 
 	// Load list of images to container
-	loadFileList( ColorFeretDBFile );
+	loadFileList( ColorFeretDBFile_fa );
 
 	// Initialize file list iterator 
 	imIt = imgFileList.size() - 20;
@@ -326,7 +333,7 @@ void ProcessAlgorithm()
 	if( isFace )
 	{
 		eyes_exec_time = startTime();
-		//DetectEyes();
+		DetectEyes();
 		calcExecTime( &eyes_exec_time );
 		cout << "eyes detect\t\t" << (int)eyes_exec_time << " ms" << endl;
 
@@ -336,7 +343,7 @@ void ProcessAlgorithm()
 		cout << "mouth detect\t\t" << (int)mouth_exec_time << " ms" << endl;
 		
 		eyebrows_exec_time = startTime();
-		//DetectEyebrows();
+		DetectEyebrows();
 		calcExecTime( &eyebrows_exec_time );
 		cout << "eyesbrows detect\t" << (int)eyebrows_exec_time << " ms" << endl;
 	}

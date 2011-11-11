@@ -142,7 +142,7 @@ void getBestEyebrowCadidate( Mat img, vector <vector <Point>>& candidates,
 		copy( candidates[0].begin(), candidates[0].end(), back_inserter(bestMatch));
 		center = keyPoints[0].pt;
 		return;
-	}
+	} else if ( !candCnt ) { return; }
 
 	// Case when there is more than one candidate
 	int regionHalfWidth = img.size().width/2.0,

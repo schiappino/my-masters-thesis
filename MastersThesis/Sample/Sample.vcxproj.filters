@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="E:\Programming\OpenCV\src\opencv\samples\cpp\tutorial_code\TrackingMotion\goodFeaturesToTrack_Demo.cpp">
+    <ClCompile Include="resize_demo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -60,6 +60,7 @@ int main( int argc, char** argv )
 {
 	bool finish = false;
 	bool use_resize = false;
+	bool extended_mode = false;
 	int found_cnt = 0;
 	const string sep = ";";
 	char name[255];
@@ -76,10 +77,11 @@ int main( int argc, char** argv )
 		imout;
 	ofstream csv;
 
-	if( argc == 3 )
+	if( argc == 3 || argc == 4 )
 	{
 		dst_size.width = atoi( argv[1] );
 		dst_size.height = atoi( argv[2] );
+		bool(atoi( argv[3] )) ? extended_mode = true : extended_mode = false;
 		use_resize = true;
 	}
 	else if( argc == 1 ) { use_resize = false; }
@@ -108,7 +110,7 @@ int main( int argc, char** argv )
 		<< sep << "Avg resize time" << sep << "FPS" << sep << endl;
 
 
-	for( double scale = 1.05; scale < 1.65; scale += 0.05 )
+	for( double scale = 1.05; scale < 1.60; scale += 0.05 )
 	{
 		std::cout << endl
 			 << ">>>>>>>>>>>>>>>>>>>>>>>> Window Scale Factor: " << scale
@@ -151,10 +153,21 @@ int main( int argc, char** argv )
 
 				if( faces.size() )
 				{
-					//cout << " faces found " << faces.size();
 					found_cnt++;
+					
+					if( extended_mode )
+					{
+						for( int f = 0; f < faces.size(); ++f )
+						{
+							Point pt1 = Point( faces[f].x, faces[f].y );
+							Point pt2 = Point( faces[f].x + faces[f].width, faces[f].y + faces[f].height );
+							rectangle( imout, pt1, pt2, CV_RGB(241, 236, 27), 3 );
+
+							sprintf_s( name, "results\\WS-%f db-%d im-%d-%d.jpg", scale, k+1, i+1, f+1 );
+							imwrite( name, imout );
+						}
+					}
 				}
-				//cout << endl;
 			}
 
 			// Calculate average Haar time

@@ -22,6 +22,7 @@ extern const char* cascadeFNameMouth;
 // ********************************** IMAGE FILES *******************************************
 extern const char* IMMFaceDBFile;
 extern const char* ColorFeretDBFile;
+extern const char* ColorFeretDBFile_fa;
 extern const char* eyeTemplateFile;
 
 // *********************************** VIDEO FILES ******************************************

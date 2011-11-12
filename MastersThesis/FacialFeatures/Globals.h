@@ -145,5 +145,44 @@ struct EyebrowCandidateFlags
 		RIGHT = 2
 	};
 };
+struct FaceDbFlags
+{
+	enum
+	{
+		IMM = 1,
+		BioID = 2,
+		COLOR_FERET = 3;
+	};
+};
+struct FacialFeaturesValidation
+{
+	struct Eye
+	{
+		vector <Point> left,
+					   rigth,
+					   left_err,
+					   right_err;
+	} eyes;
 
+	struct Mouth
+	{
+		vector <Point> leftCorner,
+					   rightCorner,
+					   leftCorner_err,
+					   rightCorner_err;
+	} mouth;
+
+	struct Eyebrows
+	{
+		vector <Point> left,
+					   rigth,
+					   left_err,
+					   rigth_err;
+	} eyebrow;
+};
+
+extern FacialFeaturesValidation 
+	featuresBioID,
+	featuresIMM,
+	featuresFeret;
 #endif

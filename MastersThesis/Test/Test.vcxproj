@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="console manip.cpp" />
+    <ClCompile Include="ground_truths.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{DEB0B0D9-A6FB-4F9E-9811-AD73325A4A41}</ProjectGuid>

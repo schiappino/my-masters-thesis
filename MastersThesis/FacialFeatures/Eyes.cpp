@@ -6,7 +6,7 @@ void DetectEyes()
 	if( faces.size() )
 	{
 		// Iris is typically 7% of face size
-		int irisRadiusMax = cvRound(face_size*0.03);
+		int irisRadiusMax = cvRound(face_size*0.035);
 
 		Rect eyesROI	 = Rect( faces[0].x,							(int)(faces[0].y + 0.2*faces[0].height), 
 								 faces[0].width,						(int)(0.4*faces[0].height) );

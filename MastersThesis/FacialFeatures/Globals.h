@@ -29,6 +29,11 @@ extern const char* eyeTemplateFile;
 extern const char* VideoSequences;
 extern const char* VideoSequence1;
 
+// ******************************** GROUND TRUTH FILES **************************************
+extern const string groundTruthsFeret;
+extern const string groundTruthsBioID;
+extern const string groundTruthsIMM;
+
 // ****************************** GLOBALS ***************************************************
 extern const int PROGRAM_MODE;
 
@@ -151,7 +156,7 @@ struct FaceDbFlags
 	{
 		IMM = 1,
 		BioID = 2,
-		COLOR_FERET = 3;
+		COLOR_FERET = 3
 	};
 };
 struct FacialFeaturesValidation
@@ -159,7 +164,7 @@ struct FacialFeaturesValidation
 	struct Eye
 	{
 		vector <Point> left,
-					   rigth,
+					   right,
 					   left_err,
 					   right_err;
 	} eyes;
@@ -175,9 +180,9 @@ struct FacialFeaturesValidation
 	struct Eyebrows
 	{
 		vector <Point> left,
-					   rigth,
+					   right,
 					   left_err,
-					   rigth_err;
+					   right_err;
 	} eyebrow;
 };
 

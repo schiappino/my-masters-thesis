@@ -1,40 +1,43 @@
-#include "Globals.h"
-#include "FacialFeatures.h"
+#include "GroundTruths.h"
 
 void getGroundTruthsData( FacialFeaturesValidation& features, const string files, int flag )
 {
-	if		( flag == FaceDbFlags.IMM )			{ getGroundTruthsIMM( features, files ); }
-	else if ( flag == FaceDbFlags.BioID )		{ getGroundTruthsBioID( features, files ); }
-	else if ( flag == FaceDbFlags.COLOR_FERET ) { getGroundTruthsColorFeret( features, files ); }
+	if		( flag == FaceDbFlags::IMM )			{ getGroundTruthsIMM( features, files ); }
+	else if ( flag == FaceDbFlags::BioID )		{ getGroundTruthsBioID( features, files ); }
+	else if ( flag == FaceDbFlags::COLOR_FERET ) { getGroundTruthsColorFeret( features, files ); }
 };
 void getGroundTruthsIMM( FacialFeaturesValidation& features, const string files ){};
 void getGroundTruthsBioID( FacialFeaturesValidation& features, const string files ){};
 void getGroundTruthsColorFeret( FacialFeaturesValidation& features, const string files )
 {
-	string	file_name = "ground truth.txt",
-			file_list = "N:/data/colorferet/data/ground_truths/name_value/filelist.txt",
-			output_file = "coordinates output.txt";
-
+	const string LEFT_EYE_PARAM_NAME = "left_eye_coordinates=",
+				 RIGHT_EYE_PARAM_NAME = "right_eye_coordinates=";
+	Point leftEyePoint, rightEyePoint;
+	bool leftEyeCoordsFound = false,
+		rightEyeCoordsFound = false;
+	vector <string> fileList;
 	ifstream file;
-	ofstream output( output_file, ios::out );
 
-	bool is_file_list_loaded = load_file_list( file_list );
-	if( !is_file_list_loaded ) { cerr << "Cannot open input file list" << endl; return 1; }
+	bool isFileListLoaded = loadFileList( files.c_str(), fileList );
+	if( !isFileListLoaded ) { cerr << "Cannot open input file list: " << files << endl; }
 
-	for( size_t i = 0; i < list_of_files.size(); ++i )
+	for( size_t i = 0; i < fileList.size(); ++i )
 	{
-		file.open( list_of_files[i] );
-		if( !file.is_open() ){ cerr << "Cannot open input file" << endl; return 1; }
-		if( !output.is_open() ){ cerr << "Cannot open output file" << endl; return 1; }
+		leftEyeCoordsFound = false;
+		rightEyeCoordsFound = false;
 
-		while( file.good() && output.good() )
+		file.open( fileList[i] );
+		if( !file.is_open() ){ cerr << "Cannot open input file: " << fileList[i] << endl; }
+
+		while( file.good() )
 		{
 			string line;
 			getline( file, line );
 
-			size_t found_idx = line.find( "left_eye_coordinates=" );
+			size_t found_idx = line.find( LEFT_EYE_PARAM_NAME );
 			if ( !found_idx )
 			{
+				leftEyeCoordsFound = true;
 				found_idx = numeric_limits<int>::max();
 
 				size_t pos1 = line.find( "=" ) + 1;
@@ -48,12 +51,16 @@ void getGroundTruthsColorFeret( FacialFeaturesValidation& features, const string
 				iss_x >> x_coord;
 				iss_y >> y_coord;
 
-				output << "Right eye: " << x_coord << " " << y_coord << endl;
+				leftEyePoint = Point ( x_coord, y_coord );
+				features.eyes.left.push_back( leftEyePoint );
 			}
 
-			found_idx = line.find( "right_eye_coordinates=" );
+
+			found_idx = line.find( RIGHT_EYE_PARAM_NAME );
 			if ( !found_idx )
 			{
+				rightEyeCoordsFound = true;
+
 				size_t pos1 = line.find( "=" ) + 1;
 				size_t pos2 = line.find( " " );
 				string s_x = line.substr( pos1, line.size() - pos2 - 1 );
@@ -65,10 +72,23 @@ void getGroundTruthsColorFeret( FacialFeaturesValidation& features, const string
 				iss_x >> x_coord;
 				iss_y >> y_coord;
 
-				output << "Left eye: " << x_coord << " " << y_coord << endl;
+				rightEyePoint = Point ( x_coord, y_coord );
+				features.eyes.right.push_back( rightEyePoint );
 			}
 		}
 		file.close();
+		
+		// If there were no eye coordinate in ground truth file
+		// add zero valued points to the list (0,0)
+		if( !leftEyeCoordsFound ) 
+		{ 
+			rightEyePoint = Point();
+			features.eyes.right.push_back( rightEyePoint ); 
+		}
+		if( !rightEyeCoordsFound ) 
+		{ 
+			leftEyePoint = Point();
+			features.eyes.left.push_back( leftEyePoint ); 
+		}
 	}
-	output.close();
 };

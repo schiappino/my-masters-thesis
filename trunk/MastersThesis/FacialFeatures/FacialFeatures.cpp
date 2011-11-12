@@ -30,6 +30,11 @@ const int PROGRAM_MODE = 1;
 
 const double K_EXP_OPERATOR = 0.0217304452751310829264530948549876073716129212732431841605;
 
+FacialFeaturesValidation 
+	featuresBioID,
+	featuresIMM,
+	featuresFeret;
+
 VideoCapture videoCapture;
 
 CascadeClassifier
@@ -70,8 +75,8 @@ Mat
 Mat lookUpTable( 1, 256, CV_8U );
 
 vector<Mat> rgb_planes,
-                        hls_planes,
-                        hsv_planes;
+			hls_planes,
+            hsv_planes;
 
 
 int                     

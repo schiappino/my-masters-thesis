@@ -3,3 +3,4 @@
 
 void DetectEyes(void);
 void EyeTemplateMatching( Mat src, Mat disp, Mat templ, int irisRadius);
+void DrawGroundTruthEyePos();

@@ -23,6 +23,7 @@ using namespace cv;
 #define EYES_DETECT_MULTI_CASCADE
 //#define EYES_TEMPLATE_MATCH_DEBUG
 #define EYES_VALIDATION
+#define VALIDATION
 
 
 // ********************* FUNCTION DECLARATIONS ******************************
@@ -30,7 +31,7 @@ using namespace cv;
 // **************************** HELPERS ************************************* 
 double startTime(void);
 double calcExecTime( double* time );
-bool loadFileList( const char* fileName );
+bool loadFileList( const char* fileName, vector <string>& list );
 // ****************************** CORE *************************************
 void exponentialOperator( Mat src, Mat dst );
 int Init(void);

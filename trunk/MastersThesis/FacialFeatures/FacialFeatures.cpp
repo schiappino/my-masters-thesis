@@ -3,30 +3,38 @@
 #include "Eyebrows.h"
 #include "Mouth.h"
 #include "GUI.h"
+#include "GroundTruths.h"
 #include "FacialFeatures.h"
 
 using namespace cv;
 using namespace std;
 
 // ********************************** CASCADE FILES ******************************************
-const char* cascadeFNameEye                             = "../data/cascades/haarcascade_eye.xml";
+const char* cascadeFNameEye             = "../data/cascades/haarcascade_eye.xml";
 const char* cascadeFNameEyeRightSplit   = "../data/cascades/haarcascade_righteye_2splits.xml";
 const char* cascadeFNameEyeLeftSplit    = "../data/cascades/haarcascade_lefteye_2splits.xml";
-const char* cascadeFNameFace                    = "../data/cascades/haarcascade_frontalface_alt.xml";
-const char* cascadeFNameMouth                   = "../data/cascades/haarcascade_mcs_mouth.xml";
+const char* cascadeFNameFace            = "../data/cascades/haarcascade_frontalface_alt.xml";
+const char* cascadeFNameMouth           = "../data/cascades/haarcascade_mcs_mouth.xml";
 
 // ********************************** IMAGE FILES *******************************************
-const char* IMMFaceDBFile                               = "../data/facedb/imm/filelist.txt";
-const char* ColorFeretDBFile							= "../data/facedb/color feret/filelist.txt";
-extern const char* ColorFeretDBFile_fa					= "../data/facedb/color feret/filelist_fa.txt";
-const char* eyeTemplateFile                             = "../data/images/eye_template4.bmp";
+const char* IMMFaceDBFile				= "../data/facedb/imm/filelist.txt";
+const char* ColorFeretDBFile			= "../data/facedb/color feret/filelist.txt";
+extern const char* ColorFeretDBFile_fa	= "../data/facedb/color feret/faces list - fa pose.txt";
+const char* eyeTemplateFile             = "../data/images/eye_template4.bmp";
 
 // *********************************** VIDEO FILES ******************************************
-const char* VideoSequences                              = "../data/video sequences/filelist.txt";
-const char* VideoSequence1                              = "../data/video sequences/VIDEO0020.3gp";
+const char* VideoSequences              = "../data/video sequences/filelist.txt";
+const char* VideoSequence1              = "../data/video sequences/VIDEO0020.3gp";
+
+// ******************************** GROUND TRUTH FILES **************************************
+const string groundTruthsFeret			= "../data/facedb/ground truths/name_value/gt list - fa pose.txt";
+const string groundTruthsBioID			= "";
+const string groundTruthsIMM			= "";
 
 // ****************************** GLOBALS ***************************************************
-const int PROGRAM_MODE = 1;
+const int PROGRAM_MODE = 1; 	// PROGRAM_MODE = 1 work on images
+								// PROGRAM_MODE = 2 work on frames from avi capture
+								// PROGRAM_MODE = 3 work on frames from webcam capture
 
 const double K_EXP_OPERATOR = 0.0217304452751310829264530948549876073716129212732431841605;
 
@@ -104,7 +112,7 @@ int
         TrackbarMaxVal  = 255;
 
 bool finish = false,
-         pause  = false;
+	 pause  = false;
 
 double          
         fps = 0, 
@@ -134,9 +142,10 @@ const char
         * trckbarEyeThreshold = "Eyes THR";
 
 vector<string>  imgFileList;
-vector<Rect>    faces,
-                                eyes,
-                                mouths;
+vector<Rect>    
+	faces,
+    eyes,
+    mouths;
 
 
 
@@ -157,7 +166,7 @@ double calcExecTime( double* time )
 }
 
 
-bool loadFileList( const char* fileName )
+bool loadFileList( const char* fileName, vector <string>& list )
 {
 	ifstream in;
 	string line;
@@ -172,10 +181,10 @@ bool loadFileList( const char* fileName )
 	while( !in.eof() )
 	{
 		getline(in, line );
-		imgFileList.push_back( line );
+		list.push_back( line );
 	}
 
-	if( imgFileList.size() > 0 )
+	if( list.size() > 0 )
 		return true;
 	else
 	{
@@ -190,18 +199,18 @@ int Init()
 	imgFileList.reserve( COLOR_FERET_DB_SIZE );
 
 	// Load list of images to container
-	loadFileList( ColorFeretDBFile_fa );
+	loadFileList( ColorFeretDBFile_fa, imgFileList );
 
 	// Initialize file list iterator 
 	imIt = imgFileList.size() - 20;
 
 	// Load cascades
-	if( !cascadeFace.load( cascadeFNameFace) )				{ printf("--(!)Error loading\n"); return -1; };
-	if( !cascadeEye.load( cascadeFNameEye ) )				{ printf("--(!)Error loading\n"); return -1; };
-	if( !cascadeEyeRight.load( cascadeFNameEyeRightSplit ) ){ printf("--(!)Error loading\n"); return -1; };
-	if( !cascadeEyeLeft.load( cascadeFNameEyeLeftSplit ) )	{ printf("--(!)Error loading\n"); return -1; };
-	if( !cascadeMouth.load( cascadeFNameMouth ) )			{ printf("--(!)Error loading\n"); return -1; };
-	if( !cascadeMouth.load( cascadeFNameMouth ) )			{ printf("--(!)Error loading\n"); return -1; };
+	if( !cascadeFace.load( cascadeFNameFace) )				{ cerr << "--(!)Error loading" << endl; return -1; };
+	if( !cascadeEye.load( cascadeFNameEye ) )				{ cerr << "--(!)Error loading" << endl; return -1; };
+	if( !cascadeEyeRight.load( cascadeFNameEyeRightSplit ) ){ cerr << "--(!)Error loading" << endl; return -1; };
+	if( !cascadeEyeLeft.load( cascadeFNameEyeLeftSplit ) )	{ cerr << "--(!)Error loading" << endl; return -1; };
+	if( !cascadeMouth.load( cascadeFNameMouth ) )			{ cerr << "--(!)Error loading" << endl; return -1; };
+	if( !cascadeMouth.load( cascadeFNameMouth ) )			{ cerr << "--(!)Error loading" << endl; return -1; };
 
 	// Initialize font
 	cvInitFont(&font, CV_FONT_HERSHEY_PLAIN, 1.0, 1.0, 0, 1, CV_AA);
@@ -252,6 +261,11 @@ int Init()
 		cout << "Template file not loaded" << endl;
 		return -1;
 	}
+
+	// Load ground truth data
+	#ifdef VALIDATION
+	getGroundTruthsData( featuresFeret, groundTruthsFeret, FaceDbFlags::COLOR_FERET );
+	#endif
 
 	return 0;
 };
@@ -343,12 +357,12 @@ void ProcessAlgorithm()
 		cout << "eyes detect\t\t" << (int)eyes_exec_time << " ms" << endl;
 
 		mouth_exec_time = startTime();
-		DetectMouth();
+		//DetectMouth();
 		calcExecTime( &mouth_exec_time );
 		cout << "mouth detect\t\t" << (int)mouth_exec_time << " ms" << endl;
 		
 		eyebrows_exec_time = startTime();
-		DetectEyebrows();
+		//DetectEyebrows();
 		calcExecTime( &eyebrows_exec_time );
 		cout << "eyesbrows detect\t" << (int)eyebrows_exec_time << " ms" << endl;
 	}

@@ -106,8 +106,7 @@ void DetectEyes()
 			#ifdef EYES_DETECT_DEBUG
 				imshow( "Found eye right", imgFoundRightEye );
 			#endif
-		} else {
-			// if right eye is not found then try templ match on bigger ROI
+		} else { // if right eye is not found then try templ match on bigger ROI
 			Mat imgProcessedRightEye ( imgProcessed, eyeRightROI );
 			EyeTemplateMatching( imgEyeRight, imgProcessedRightEye, imgTempl, irisRadiusMax );
 		}
@@ -121,11 +120,21 @@ void DetectEyes()
 			#ifdef EYES_DETECT_DEBUG
 				imshow( "Found eye left", imgFoundLeftEye );
 			#endif
-		} else { 
-			// if left eye is not found then try templ match on bigger ROI
+		} else { // if left eye is not found then try templ match on bigger ROI
 			Mat imgProcessedLeftEye ( imgProcessed, eyeLeftROI );
 			EyeTemplateMatching( imgEyeLeft, imgProcessedLeftEye, imgTempl, irisRadiusMax );
 		}
+		
+		// Validation: Draw ground truth eye centres
+		#ifdef VALIDATION
+		if( featuresFeret.eyes.left.size() == featuresFeret.eyes.right.size() 
+			&& featuresFeret.eyes.left.size() == imgFileList.size() )
+		{
+			DrawGroundTruthEyePos();
+		}
+		else { cerr << "--(!) Number of ground truth data in not equal" << endl; }
+		#endif
+
 		#endif
 	}
 };
@@ -165,3 +174,32 @@ void EyeTemplateMatching( Mat src, Mat disp, Mat templ, int irisRadius)
 	imshow( wndNameTemplRes, result );
 	#endif
 };
+void DrawGroundTruthEyePos()
+{
+	Point ptx1, ptx2, pty1, pty2;
+	Scalar colour = Scalar::all(255);
+	int offset = 10,
+		thickness = 2;
+
+	ptx1 = Point( featuresFeret.eyes.left.at( imIt ).x - offset, 
+				  featuresFeret.eyes.left.at( imIt ).y);
+	ptx2 = Point( featuresFeret.eyes.left.at( imIt ).x + offset, 
+				  featuresFeret.eyes.left.at( imIt ).y);
+	pty1 = Point( featuresFeret.eyes.left.at( imIt ).x, 
+				  featuresFeret.eyes.left.at( imIt ).y - offset);
+	pty2 = Point( featuresFeret.eyes.left.at( imIt ).x, 
+				  featuresFeret.eyes.left.at( imIt ).y + offset);
+	line( imgProcessed, ptx1, ptx2, colour, thickness );
+	line( imgProcessed, pty1, pty2, colour, thickness );
+
+	ptx1 = Point( featuresFeret.eyes.right.at( imIt ).x - offset, 
+				  featuresFeret.eyes.right.at( imIt ).y);
+	ptx2 = Point( featuresFeret.eyes.right.at( imIt ).x + offset, 
+				  featuresFeret.eyes.right.at( imIt ).y);
+	pty1 = Point( featuresFeret.eyes.right.at( imIt ).x, 
+				  featuresFeret.eyes.right.at( imIt ).y - offset);
+	pty2 = Point( featuresFeret.eyes.right.at( imIt ).x, 
+				  featuresFeret.eyes.right.at( imIt ).y + offset);
+	line( imgProcessed, ptx1, ptx2, colour, thickness );
+	line( imgProcessed, pty1, pty2, colour, thickness );
+}

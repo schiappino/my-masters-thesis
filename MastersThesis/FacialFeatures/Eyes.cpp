@@ -5,6 +5,10 @@ void DetectEyes()
 	// Start detecting only if face is found
 	if( faces.size() )
 	{
+		// Left and right eye coordinates
+		Point leftEyeCoords, 
+			rightEyeCoords;
+
 		// Iris is typically 7% of face size
 		int irisRadiusMax = cvRound(face_size*0.035);
 
@@ -101,44 +105,48 @@ void DetectEyes()
 			Rect foundROI = eyesRight[0];
 			Mat imgFoundRightEye ( imgEyeRight, foundROI );
 			Mat imgProcessedFoundRightEye ( imgProcessedWithRightEye, foundROI );
-			EyeTemplateMatching( imgFoundRightEye, imgProcessedFoundRightEye, imgTempl, irisRadiusMax );
+			rightEyeCoords = EyeTemplateMatching( imgFoundRightEye, imgProcessedFoundRightEye, imgTempl, irisRadiusMax );
+			// Add the offset of ROI to obtain global location of the eye
+			rightEyeCoords = Point( rightEyeCoords.x + eyeRightROI.x + foundROI.x, rightEyeCoords.y + eyeRightROI.y + foundROI.y );
 
 			#ifdef EYES_DETECT_DEBUG
 				imshow( "Found eye right", imgFoundRightEye );
 			#endif
 		} else { // if right eye is not found then try templ match on bigger ROI
 			Mat imgProcessedRightEye ( imgProcessed, eyeRightROI );
-			EyeTemplateMatching( imgEyeRight, imgProcessedRightEye, imgTempl, irisRadiusMax );
+			rightEyeCoords = EyeTemplateMatching( imgEyeRight, imgProcessedRightEye, imgTempl, irisRadiusMax );
+			// Add the offset of ROI to obtain global location of the eye
+			rightEyeCoords = Point( rightEyeCoords.x + eyeRightROI.x, rightEyeCoords.y + eyeRightROI.y );
 		}
 		if( eyesLeft.size() )
 		{
 			Rect foundROI = eyesLeft[0];
 			Mat imgFoundLeftEye ( imgEyeLeft, foundROI );
 			Mat imgProcessedFoundLeftEye ( imgProcessedWithLeftEye, foundROI );
-			EyeTemplateMatching( imgFoundLeftEye, imgProcessedFoundLeftEye, imgTempl, irisRadiusMax );
+			leftEyeCoords = EyeTemplateMatching( imgFoundLeftEye, imgProcessedFoundLeftEye, imgTempl, irisRadiusMax );
+			// Add the offset of ROI to obtain global location of the eye
+			leftEyeCoords = Point( leftEyeCoords.x + eyeLeftROI.x + foundROI.x, leftEyeCoords.y + eyeLeftROI.y + foundROI.y );
 
 			#ifdef EYES_DETECT_DEBUG
 				imshow( "Found eye left", imgFoundLeftEye );
 			#endif
 		} else { // if left eye is not found then try templ match on bigger ROI
 			Mat imgProcessedLeftEye ( imgProcessed, eyeLeftROI );
-			EyeTemplateMatching( imgEyeLeft, imgProcessedLeftEye, imgTempl, irisRadiusMax );
+			leftEyeCoords = EyeTemplateMatching( imgEyeLeft, imgProcessedLeftEye, imgTempl, irisRadiusMax );
+			// Add the offset of ROI to obtain global location of the eye
+			leftEyeCoords = Point( leftEyeCoords.x + eyeLeftROI.x, leftEyeCoords.y + eyeLeftROI.y );
 		}
 		
 		// Validation: Draw ground truth eye centres
 		#ifdef VALIDATION
-		if( featuresFeret.eyes.left.size() == featuresFeret.eyes.right.size() 
-			&& featuresFeret.eyes.left.size() == imgFileList.size() )
-		{
-			DrawGroundTruthEyePos();
-		}
-		else { cerr << "--(!) Number of ground truth data in not equal" << endl; }
+		DrawGroundTruthEyePos();
+		eyePositionsMetric( leftEyeCoords, rightEyeCoords, featuresFeret );
 		#endif
 
 		#endif
 	}
 };
-void EyeTemplateMatching( Mat src, Mat disp, Mat templ, int irisRadius)
+Point EyeTemplateMatching( Mat src, Mat disp, Mat templ, int irisRadius)
 {
 	Mat result;
 	/// Create the result matrix
@@ -173,6 +181,8 @@ void EyeTemplateMatching( Mat src, Mat disp, Mat templ, int irisRadius)
 	#ifdef EYES_TEMPLATE_MATCH_DEBUG
 	imshow( wndNameTemplRes, result );
 	#endif
+
+	return center;
 };
 void DrawGroundTruthEyePos()
 {
@@ -202,4 +212,27 @@ void DrawGroundTruthEyePos()
 				  featuresFeret.eyes.right.at( imIt ).y + offset);
 	line( imgProcessed, ptx1, ptx2, colour, thickness );
 	line( imgProcessed, pty1, pty2, colour, thickness );
+}
+inline double getInterocularDist( FacialFeaturesValidation& features )
+{
+	return abs(features.eyes.right.at( imIt ).x - features.eyes.left.at( imIt ).x); 
+}
+void eyePositionsMetric( Point& left, Point& right, FacialFeaturesValidation& features )
+{
+	double interOcularDist	= getInterocularDist( features );
+
+	double leftEye_Xerr		= (abs(features.eyes.left.at( imIt ).x - left.x ) / interOcularDist) * 100;
+	double leftEye_Yerr		= (abs(features.eyes.left.at( imIt ).y - left.y ) / interOcularDist) * 100;
+	double rightEye_Xerr	= (abs(features.eyes.right.at( imIt ).x - right.x ) / interOcularDist) * 100;
+	double rightEye_Yerr	= (abs(features.eyes.right.at( imIt ).y - right.y ) / interOcularDist) * 100;
+
+	double leftEye_err		= leftEye_Xerr + leftEye_Yerr;
+	double rightEye_err		= rightEye_Xerr + rightEye_Yerr;
+
+	cout << "Inter ocular dist " << setw(4) << interOcularDist
+		 << "\tLeft " << setiosflags(ios::basefield) << setiosflags(ios::fixed) << setprecision(1)
+		 << setw(4) << leftEye_err << "%"
+		 << "\tRight" << setiosflags(ios::basefield) << setiosflags(ios::fixed) << setprecision(1)
+		 << setw(4) << rightEye_err << "%" 
+		 << endl;
 }

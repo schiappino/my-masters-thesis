@@ -10,8 +10,8 @@ void getGroundTruthsIMM( FacialFeaturesValidation& features, const string files 
 void getGroundTruthsBioID( FacialFeaturesValidation& features, const string files ){};
 void getGroundTruthsColorFeret( FacialFeaturesValidation& features, const string files )
 {
-	const string LEFT_EYE_PARAM_NAME = "left_eye_coordinates=",
-				 RIGHT_EYE_PARAM_NAME = "right_eye_coordinates=";
+	const string RIGHT_EYE_PARAM_NAME = "left_eye_coordinates=",
+				 LEFT_EYE_PARAM_NAME = "right_eye_coordinates=";
 	Point leftEyePoint, rightEyePoint;
 	bool leftEyeCoordsFound = false,
 		rightEyeCoordsFound = false;

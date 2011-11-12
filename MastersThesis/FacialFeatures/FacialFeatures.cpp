@@ -265,6 +265,8 @@ int Init()
 	// Load ground truth data
 	#ifdef VALIDATION
 	getGroundTruthsData( featuresFeret, groundTruthsFeret, FaceDbFlags::COLOR_FERET );
+	if( !(featuresFeret.eyes.left.size() == featuresFeret.eyes.right.size() 
+		&& featuresFeret.eyes.left.size() == imgFileList.size()) ) { cerr << "--(!) Number of ground truth data in not equal" << endl; }
 	#endif
 
 	return 0;

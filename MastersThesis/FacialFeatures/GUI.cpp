@@ -49,7 +49,7 @@ void InitGUI()
 	//namedWindow( wndNameBilateral, flags );
 	//namedWindow( wndNameTemplRes, flags );
 	//namedWindow( wndNameBlobs, flags );
-	namedWindow( wndNameCorners, flags );
+	//namedWindow( wndNameCorners, flags );
 
 	createTrackbar( trckbarMouthThresh, wndNameMouth, &mouthThreshold, 255, onThresholdTrackbar );
 	createTrackbar( trckbarbilateralBlur, "", &bilatBlurVal, 20, onBilateralBlur );

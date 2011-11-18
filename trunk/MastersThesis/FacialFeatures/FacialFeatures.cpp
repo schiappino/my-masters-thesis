@@ -32,9 +32,10 @@ const string groundTruthsBioID			= "";
 const string groundTruthsIMM			= "";
 
 // ****************************** GLOBALS ***************************************************
-const int PROGRAM_MODE = 1; 	// PROGRAM_MODE = 1 work on images
+const int PROGRAM_MODE = 4; 	// PROGRAM_MODE = 1 work on images
 								// PROGRAM_MODE = 2 work on frames from avi capture
 								// PROGRAM_MODE = 3 work on frames from webcam capture
+								// PROGRAM_MODE = 4 validation mode
 
 const double K_EXP_OPERATOR = 0.0217304452751310829264530948549876073716129212732431841605;
 
@@ -202,7 +203,7 @@ int Init()
 	loadFileList( ColorFeretDBFile_fa, imgFileList );
 
 	// Initialize file list iterator 
-	imIt = imgFileList.size() - 20;
+	imIt = 0;
 
 	// Load cascades
 	if( !cascadeFace.load( cascadeFNameFace) )				{ cerr << "--(!)Error loading" << endl; return -1; };
@@ -253,7 +254,10 @@ int Init()
 		cout << "Not implemented" << endl;
 		return -1;	
 	}
-	
+	else if( PROGRAM_MODE == 4 )
+	{
+		cout << "Validation mode turned on" << endl;
+	}
 	// Load eye template
 	imgTempl = imread( eyeTemplateFile, CV_LOAD_IMAGE_GRAYSCALE );
 	if( !imgTempl.data )
@@ -387,6 +391,12 @@ int main(int argc, char** argv )
 				videoCapture.set( CV_CAP_PROP_POS_AVI_RATIO, 0 );
 				videoCapture >> imgSrc;
 			}
+		}
+		else if( PROGRAM_MODE == 4 )
+		{
+			imgSrc = imread( imgFileList.at( imIt ));
+			++imIt;
+			if( imIt > imgFileList.size()) { finish = true; }
 		}
 		// Show current image or frame
 		imshow( wndNameSrc, imgSrc );

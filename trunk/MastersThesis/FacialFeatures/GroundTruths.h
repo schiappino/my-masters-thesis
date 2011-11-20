@@ -5,3 +5,4 @@ void getGroundTruthsData( FacialFeaturesValidation& features, const string files
 void getGroundTruthsIMM( FacialFeaturesValidation& features, const string files );
 void getGroundTruthsBioID( FacialFeaturesValidation& features, const string files );
 void getGroundTruthsColorFeret( FacialFeaturesValidation& features, const string files );
+Point getPointFromASFFile( const string file, int point_no );

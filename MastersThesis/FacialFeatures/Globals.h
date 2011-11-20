@@ -159,14 +159,44 @@ struct FaceDbFlags
 		COLOR_FERET = 3
 	};
 };
+struct IMMDbAnnotationPoints
+{
+	enum
+	{
+		LEFT_EYE_LC			= 21,	// left eye - left corner
+		LEFT_EYE_RC			= 25,	// left eye - right corner
+		LEFT_EYE_UMID		= 23,	// left eye - upper mid point
+		LEFT_EYE_LMID		= 27,	// left eye - lower mid point
+
+		RIGHT_EYE_LC		= 17,	// right eye - right corner
+		RIGHT_EYE_RC		= 13,	// right eye - right corner
+		RIGHT_EYE_UMID		= 15,	// right eye - upper mid point
+		RIGHT_EYE_LMID		= 19,	// right eye - lower mid point
+
+		MOUTH_LEFT_COR		= 39,	// mouth - left corner
+		MOUTH_RIGHT_COR		= 43,	// mouth - right corner
+		MOUTH_UP_MID		= 41,	// mouth - upper mid point
+		MOUTH_LO_MID		= 45,	// mouth - lower mid point
+
+		LEFT_EYEBROW		= 36,	// left eyebrow - centre point
+		RIGHT_EYEBROW		= 31	// right eyebrow - centre point
+	};
+};
 struct FacialFeaturesValidation
 {
 	struct Eye
 	{
-		vector <Point> left,
-					   right,
-					   left_err,
-					   right_err;
+		vector <Point> left,		// Left eye coordinates from GT file
+					   right,		// Right eye coordinates from GT file
+					   left_det,	// Detected left eye coordinates from GT file
+					   right_det;	// Detected right eye coordinates from GT file
+
+		vector <double>left_err,	// Detected left eye error
+					   right_err;	// Detected right eye error
+		
+		vector <double>	IOD;		// Inter ocular distance from GT file
+		
+		int size;					// number of items
 	} eyes;
 
 	struct Mouth
@@ -175,6 +205,7 @@ struct FacialFeaturesValidation
 					   rightCorner,
 					   leftCorner_err,
 					   rightCorner_err;
+		int size;
 	} mouth;
 
 	struct Eyebrows
@@ -183,6 +214,7 @@ struct FacialFeaturesValidation
 					   right,
 					   left_err,
 					   right_err;
+		int size;
 	} eyebrow;
 };
 

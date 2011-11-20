@@ -3,6 +3,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <sstream>
 #include <opencv2/objdetect/objdetect.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -24,6 +25,7 @@ using namespace cv;
 //#define EYES_TEMPLATE_MATCH_DEBUG
 #define EYES_VALIDATION
 #define VALIDATION
+#define GUI
 
 
 // ********************* FUNCTION DECLARATIONS ******************************
@@ -32,6 +34,8 @@ using namespace cv;
 double startTime(void);
 double calcExecTime( double* time );
 bool loadFileList( const char* fileName, vector <string>& list );
+string convertInt(int number);
+double square_distance( double a, double b );
 // ****************************** CORE *************************************
 void exponentialOperator( Mat src, Mat dst );
 int Init(void);

@@ -139,8 +139,10 @@ void DetectEyes()
 		
 		// Validation: Draw ground truth eye centres
 		#ifdef VALIDATION
-		DrawGroundTruthEyePos();
-		eyePositionsMetric( leftEyeCoords, rightEyeCoords, featuresFeret );
+			#ifdef GUI
+			DrawGroundTruthEyePos( featuresIMM );
+			#endif
+		eyePositionsMetric( leftEyeCoords, rightEyeCoords, featuresIMM );
 		#endif
 
 		#endif
@@ -184,38 +186,40 @@ Point EyeTemplateMatching( Mat src, Mat disp, Mat templ, int irisRadius)
 
 	return center;
 };
-void DrawGroundTruthEyePos()
+void DrawGroundTruthEyePos( FacialFeaturesValidation& features )
 {
 	Point ptx1, ptx2, pty1, pty2;
 	Scalar colour = Scalar::all(255);
-	int offset = 10,
-		thickness = 2;
+	const int offset = 10,
+			thickness = 1;
 
-	ptx1 = Point( featuresFeret.eyes.left.at( imIt ).x - offset, 
-				  featuresFeret.eyes.left.at( imIt ).y);
-	ptx2 = Point( featuresFeret.eyes.left.at( imIt ).x + offset, 
-				  featuresFeret.eyes.left.at( imIt ).y);
-	pty1 = Point( featuresFeret.eyes.left.at( imIt ).x, 
-				  featuresFeret.eyes.left.at( imIt ).y - offset);
-	pty2 = Point( featuresFeret.eyes.left.at( imIt ).x, 
-				  featuresFeret.eyes.left.at( imIt ).y + offset);
+	ptx1 = Point( features.eyes.left.at( imIt ).x - offset, 
+				  features.eyes.left.at( imIt ).y);
+	ptx2 = Point( features.eyes.left.at( imIt ).x + offset, 
+				  features.eyes.left.at( imIt ).y);
+	pty1 = Point( features.eyes.left.at( imIt ).x, 
+				  features.eyes.left.at( imIt ).y - offset);
+	pty2 = Point( features.eyes.left.at( imIt ).x, 
+				  features.eyes.left.at( imIt ).y + offset);
 	line( imgProcessed, ptx1, ptx2, colour, thickness );
 	line( imgProcessed, pty1, pty2, colour, thickness );
 
-	ptx1 = Point( featuresFeret.eyes.right.at( imIt ).x - offset, 
-				  featuresFeret.eyes.right.at( imIt ).y);
-	ptx2 = Point( featuresFeret.eyes.right.at( imIt ).x + offset, 
-				  featuresFeret.eyes.right.at( imIt ).y);
-	pty1 = Point( featuresFeret.eyes.right.at( imIt ).x, 
-				  featuresFeret.eyes.right.at( imIt ).y - offset);
-	pty2 = Point( featuresFeret.eyes.right.at( imIt ).x, 
-				  featuresFeret.eyes.right.at( imIt ).y + offset);
+	ptx1 = Point( features.eyes.right.at( imIt ).x - offset, 
+				  features.eyes.right.at( imIt ).y);
+	ptx2 = Point( features.eyes.right.at( imIt ).x + offset, 
+				  features.eyes.right.at( imIt ).y);
+	pty1 = Point( features.eyes.right.at( imIt ).x, 
+				  features.eyes.right.at( imIt ).y - offset);
+	pty2 = Point( features.eyes.right.at( imIt ).x, 
+				  features.eyes.right.at( imIt ).y + offset);
 	line( imgProcessed, ptx1, ptx2, colour, thickness );
 	line( imgProcessed, pty1, pty2, colour, thickness );
 }
-inline double getInterocularDist( FacialFeaturesValidation& features )
+double getInterocularDist( FacialFeaturesValidation& features )
 {
-	return abs(features.eyes.right.at( imIt ).x - features.eyes.left.at( imIt ).x); 
+	double dx = (features.eyes.right.at( imIt ).x - features.eyes.left.at( imIt ).x); 
+	double dy = (features.eyes.right.at( imIt ).y - features.eyes.left.at( imIt ).y); 
+	return (sqrt( dy*dy + dx*dx ));
 }
 void eyePositionsMetric( Point& left, Point& right, FacialFeaturesValidation& features )
 {
@@ -226,13 +230,59 @@ void eyePositionsMetric( Point& left, Point& right, FacialFeaturesValidation& fe
 	double rightEye_Xerr	= (abs(features.eyes.right.at( imIt ).x - right.x ) / interOcularDist) * 100;
 	double rightEye_Yerr	= (abs(features.eyes.right.at( imIt ).y - right.y ) / interOcularDist) * 100;
 
-	double leftEye_err		= leftEye_Xerr + leftEye_Yerr;
-	double rightEye_err		= rightEye_Xerr + rightEye_Yerr;
+	// Calculate detection error using Pitagoras equetion
+	double leftEye_err		= square_distance( leftEye_Xerr, leftEye_Yerr );
+	double rightEye_err		= square_distance( rightEye_Xerr, rightEye_Yerr );
 
-	cout << "Inter ocular dist " << setw(4) << interOcularDist
+	features.eyes.IOD.at( imIt ) = interOcularDist;
+	features.eyes.right_det.at( imIt ) = right;
+	features.eyes.left_det.at( imIt ) = left;
+	features.eyes.right_err.at( imIt ) = rightEye_err;
+	features.eyes.left_err.at( imIt ) = leftEye_err;
+
+	cout << "Eyes validation\t\tIOD " << setw(4) << interOcularDist
 		 << "\tLeft " << setiosflags(ios::basefield) << setiosflags(ios::fixed) << setprecision(1)
 		 << setw(4) << leftEye_err << "%"
 		 << "\tRight" << setiosflags(ios::basefield) << setiosflags(ios::fixed) << setprecision(1)
-		 << setw(4) << rightEye_err << "%" 
+		 << setw(5) << rightEye_err << "%" 
 		 << endl;
+}
+bool saveEyePosValidationData( FacialFeaturesValidation& features )
+{
+	string output_file_name = "Results Eye Validation ";
+	output_file_name += convertInt(abs((int)getTickCount()));
+	output_file_name += ".csv";
+	const string next_cell = ";";
+	ofstream out;
+
+	out.open( output_file_name );
+	if( !out.good() ){ cerr << "An error occured when saving Eye Validation data" << endl; return false; }
+
+	out << "Results for Eye Validation" << endl
+		<< "Item;" << "IOD;" << "TREL x;" << "TREL y;" << "TLEL x;" << "TLEL y;" 
+		<< "DREL x;" << "DREL y;" << "DLEL x;" << "DLEL y;" << "REE %;" << "LEE %;" << endl;
+
+	int cnt = features.eyes.left.size();
+	for( int i = 0; i < cnt; ++i )
+	{
+		out << i << next_cell 
+			<< features.eyes.IOD.at(i)			<< next_cell 
+
+			<< features.eyes.right.at(i).x		<< next_cell
+			<< features.eyes.right.at(i).y		<< next_cell
+			
+			<< features.eyes.left.at(i).x		<< next_cell
+			<< features.eyes.left.at(i).y		<< next_cell
+			
+			<< features.eyes.right_det.at(i).x	<< next_cell
+			<< features.eyes.right_det.at(i).y	<< next_cell
+			
+			<< features.eyes.left_det.at(i).x	<< next_cell
+			<< features.eyes.left_det.at(i).y	<< next_cell
+
+			<< features.eyes.right_err.at(i)	<< next_cell
+			<< features.eyes.left_err.at(i)		<< next_cell << endl;
+	}
+
+
 }

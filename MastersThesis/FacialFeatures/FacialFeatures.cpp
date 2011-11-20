@@ -17,7 +17,7 @@ const char* cascadeFNameFace            = "../data/cascades/haarcascade_frontalf
 const char* cascadeFNameMouth           = "../data/cascades/haarcascade_mcs_mouth.xml";
 
 // ********************************** IMAGE FILES *******************************************
-const char* IMMFaceDBFile				= "../data/facedb/imm/filelist.txt";
+const char* IMMFaceDBFile				= "../data/facedb/imm/im_filelist.txt";
 const char* ColorFeretDBFile			= "../data/facedb/color feret/filelist.txt";
 extern const char* ColorFeretDBFile_fa	= "../data/facedb/color feret/faces list - fa pose.txt";
 const char* eyeTemplateFile             = "../data/images/eye_template4.bmp";
@@ -29,10 +29,10 @@ const char* VideoSequence1              = "../data/video sequences/VIDEO0020.3gp
 // ******************************** GROUND TRUTH FILES **************************************
 const string groundTruthsFeret			= "../data/facedb/ground truths/name_value/gt list - fa pose.txt";
 const string groundTruthsBioID			= "";
-const string groundTruthsIMM			= "";
+const string groundTruthsIMM			= "../data/facedb/imm/gt_filelist.txt";
 
 // ****************************** GLOBALS ***************************************************
-const int PROGRAM_MODE = 4; 	// PROGRAM_MODE = 1 work on images
+const int PROGRAM_MODE = 1; 	// PROGRAM_MODE = 1 work on images
 								// PROGRAM_MODE = 2 work on frames from avi capture
 								// PROGRAM_MODE = 3 work on frames from webcam capture
 								// PROGRAM_MODE = 4 validation mode
@@ -165,6 +165,16 @@ double calcExecTime( double* time )
 	*time = 1000 * ((double)getTickCount() - *time)/ getTickFrequency(); 
 	return *time;
 }
+string convertInt(int number)
+{
+   stringstream ss;
+   ss << number;
+   return ss.str();
+}
+double square_distance( double a, double b )
+{
+	return sqrt( a*a + b*b );
+}
 
 
 bool loadFileList( const char* fileName, vector <string>& list )
@@ -200,7 +210,7 @@ int Init()
 	imgFileList.reserve( COLOR_FERET_DB_SIZE );
 
 	// Load list of images to container
-	loadFileList( ColorFeretDBFile_fa, imgFileList );
+	loadFileList( IMMFaceDBFile, imgFileList );
 
 	// Initialize file list iterator 
 	imIt = 0;
@@ -268,9 +278,15 @@ int Init()
 
 	// Load ground truth data
 	#ifdef VALIDATION
-	getGroundTruthsData( featuresFeret, groundTruthsFeret, FaceDbFlags::COLOR_FERET );
-	if( !(featuresFeret.eyes.left.size() == featuresFeret.eyes.right.size() 
-		&& featuresFeret.eyes.left.size() == imgFileList.size()) ) { cerr << "--(!) Number of ground truth data in not equal" << endl; }
+	// Color FERET database
+	//getGroundTruthsData( featuresFeret, groundTruthsFeret, FaceDbFlags::COLOR_FERET );
+	//
+	//if( !(featuresFeret.eyes.left.size() == featuresFeret.eyes.right.size() 
+	//	&& featuresFeret.eyes.left.size() == imgFileList.size()) ) 
+	//{ cerr << "--(!) Number of ground truth data in not equal" << endl; }
+
+	// IMM database
+	getGroundTruthsData( featuresIMM, groundTruthsIMM, FaceDbFlags::IMM );
 	#endif
 
 	return 0;
@@ -372,14 +388,15 @@ void ProcessAlgorithm()
 		calcExecTime( &eyebrows_exec_time );
 		cout << "eyesbrows detect\t" << (int)eyebrows_exec_time << " ms" << endl;
 	}
-	imshow( wndNameFace, imgProcessed );
 	return;
 };
 
 int main(int argc, char** argv )
 {
 	Init();
+	#ifdef GUI
 	InitGUI();
+	#endif
 
 	while( !finish )
 	{
@@ -396,10 +413,12 @@ int main(int argc, char** argv )
 		{
 			imgSrc = imread( imgFileList.at( imIt ));
 			++imIt;
-			if( imIt > imgFileList.size()) { finish = true; }
+			if( imIt >= imgFileList.size()) { finish = true; break; }
 		}
 		// Show current image or frame
+		#ifdef GUI
 		imshow( wndNameSrc, imgSrc );
+		#endif
 
 		// Start time
 		exec_time = startTime();
@@ -412,10 +431,16 @@ int main(int argc, char** argv )
 			 << setiosflags(ios::basefield) << setiosflags(ios::fixed) << setprecision(1)
 			 << (1000/exec_time) << " FPS" << endl << endl;
 		
+		#ifdef GUI
 		displayStats();
 		imshow( wndNameFace, imgProcessed );
-
-		handleKeyboard( waitKey(1) );
+		handleKeyboard( waitKey(0) );
+		#endif
 	}
+	// Save validation data to the CSV file
+	#ifdef VALIDATION
+	saveEyePosValidationData( featuresIMM );
+	#endif
+
 	ExitNicely(0);
 }

@@ -46,23 +46,23 @@ bool parseIMMGroundTruthData( const string file )
 
 int main( int argc, char** argv )
 {
-	const string im_filename = "../data/facedb/imm/20-6m.jpg",
-				 gt_filename = "../data/facedb/imm/20-6m.asf",
+	const string im_filename = "../data/facedb/imm/23-5m.jpg",
+				 gt_filename = "../data/facedb/imm/23-5m.asf",
 				 wnd_name = "IMM feature points";
-	int r = 3;
+	int r = 2;
 
 	Mat imsrc = imread( im_filename );	
-	namedWindow( wnd_name, CV_GUI_NORMAL );
+	namedWindow( wnd_name, CV_WND_PROP_AUTOSIZE );
 
 	parseIMMGroundTruthData( gt_filename );
 
 	for( int i = 0; i < fp.size(); ++i )
 	{
-		circle( imsrc, fp[i], r, Scalar::all(255), -1 );
+		circle( imsrc, fp[i], r, CV_RGB(0,255,0), -1 );
 		imshow( wnd_name, imsrc );
 		cout << "\r>> Point " << i;
-		waitKey();
 	}
 
+	waitKey();
 	return 0;
 }

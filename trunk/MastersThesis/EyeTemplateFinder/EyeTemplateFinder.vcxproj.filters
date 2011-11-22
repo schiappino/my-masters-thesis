@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ExponentialOperator_demo.cpp">
+    <ClCompile Include="EyeTemplateFinder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

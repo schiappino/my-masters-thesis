@@ -17,7 +17,7 @@ const char* cascadeFNameFace            = "../data/cascades/haarcascade_frontalf
 const char* cascadeFNameMouth           = "../data/cascades/haarcascade_mcs_mouth.xml";
 
 // ********************************** IMAGE FILES *******************************************
-const char* IMMFaceDBFile				= "../data/facedb/imm/im_filelist.txt";
+const char* IMMFaceDBFile				= "../data/facedb/imm/im_filelist(frontal).txt";
 const char* ColorFeretDBFile			= "../data/facedb/color feret/filelist.txt";
 extern const char* ColorFeretDBFile_fa	= "../data/facedb/color feret/faces list - fa pose.txt";
 const char* eyeTemplateFile             = "../data/images/eye_template4.bmp";
@@ -29,7 +29,7 @@ const char* VideoSequence1              = "../data/video sequences/VIDEO0020.3gp
 // ******************************** GROUND TRUTH FILES **************************************
 const string groundTruthsFeret			= "../data/facedb/ground truths/name_value/gt list - fa pose.txt";
 const string groundTruthsBioID			= "";
-const string groundTruthsIMM			= "../data/facedb/imm/gt_filelist.txt";
+const string groundTruthsIMM			= "../data/facedb/imm/gt_filelist(frontal).txt";
 
 // ****************************** GLOBALS ***************************************************
 const int PROGRAM_MODE = 1; 	// PROGRAM_MODE = 1 work on images

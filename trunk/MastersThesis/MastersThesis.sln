@@ -11,6 +11,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ImageAnnotator", "ImageAnno
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FaceDetectionValidation", "FaceDetectionValidation\FaceDetectionValidation.vcxproj", "{6D09F362-79CA-4DDA-AD3A-3750BEC05ED4}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EyeTemplateFinder", "EyeTemplateFinder\EyeTemplateFinder.vcxproj", "{94BEC8C3-62A2-4EB4-A7D8-4DF89AFF6687}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -37,6 +39,10 @@ Global
 		{6D09F362-79CA-4DDA-AD3A-3750BEC05ED4}.Debug|Win32.Build.0 = Debug|Win32
 		{6D09F362-79CA-4DDA-AD3A-3750BEC05ED4}.Release|Win32.ActiveCfg = Release|Win32
 		{6D09F362-79CA-4DDA-AD3A-3750BEC05ED4}.Release|Win32.Build.0 = Release|Win32
+		{94BEC8C3-62A2-4EB4-A7D8-4DF89AFF6687}.Debug|Win32.ActiveCfg = Debug|Win32
+		{94BEC8C3-62A2-4EB4-A7D8-4DF89AFF6687}.Debug|Win32.Build.0 = Debug|Win32
+		{94BEC8C3-62A2-4EB4-A7D8-4DF89AFF6687}.Release|Win32.ActiveCfg = Release|Win32
+		{94BEC8C3-62A2-4EB4-A7D8-4DF89AFF6687}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -10,13 +10,10 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="ExponentialOperator_demo.cpp" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{42A6D746-A087-4379-87A3-FCBFB823A06D}</ProjectGuid>
+    <ProjectGuid>{94BEC8C3-62A2-4EB4-A7D8-4DF89AFF6687}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>Sample</RootNamespace>
+    <RootNamespace>EyeTemplateFinder</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -78,6 +75,9 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="EyeTemplateFinder.cpp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

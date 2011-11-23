@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ExponentialOperator_demo.cpp" />
+    <ClCompile Include="..\Test\RGB2Gray_demo.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{42A6D746-A087-4379-87A3-FCBFB823A06D}</ProjectGuid>

@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ExponentialOperator_demo.cpp">
+    <ClCompile Include="..\Test\RGB2Gray_demo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

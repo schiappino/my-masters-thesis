@@ -55,6 +55,16 @@ void getGroundTruthsIMM( FacialFeaturesValidation& features, const string files 
 		features.eyes.right_det.resize( features.eyes.size );
 		features.eyes.right_err.resize( features.eyes.size );
 	}
+	// Asserts for mouth corners
+	if (features.mouth.leftCorner.size() == features.mouth.rightCorner.size() )
+	{
+		features.mouth.size = features.mouth.leftCorner.size();
+		features.mouth.MCD.resize( features.mouth.size );
+		features.mouth.leftCorner_det.resize( features.mouth.size );
+		features.mouth.leftCorner_err.resize( features.mouth.size );
+		features.mouth.rightCorner_det.resize( features.mouth.size );
+		features.mouth.rightCorner_err.resize( features.mouth.size );
+	}
 	else { cerr << "IMM ground truth parser: number of left & right eyes does not match" << endl; };
 
 	if (features.eyebrow.left.size() == features.eyebrow.right.size() )

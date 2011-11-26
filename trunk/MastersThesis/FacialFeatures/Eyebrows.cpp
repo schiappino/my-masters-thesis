@@ -13,6 +13,26 @@ void DetectEyebrows()
 
 		Rect eyebrowRightROI = Rect( (int)(faces[0].x + 0.5*faces[0].width),(int)(faces[0].y + 0.2*faces[0].height), 
 									 (int)(0.4*faces[0].width),				(int)(0.2*faces[0].height) );
+#ifdef EYEBROWS_ROI_DEBUG
+		// Show up ROI on source image
+		rectangle( 
+			imgProcessed, 
+			Point( eyebrowLeftROI.x, eyebrowLeftROI.y ),
+			Point( eyebrowLeftROI.x + eyebrowLeftROI.width, eyebrowLeftROI.y + eyebrowLeftROI.height ),
+			CV_RGB(0,255,0)
+		);
+		rectangle( 
+			imgProcessed, 
+			Point( eyebrowRightROI.x, eyebrowRightROI.y ),
+			Point( eyebrowRightROI.x + eyebrowRightROI.width, eyebrowRightROI.y + eyebrowRightROI.height ),
+			CV_RGB(0,255,0)
+		);
+		putTextWithShadow(
+			imgProcessed,
+			"Eyebrows detection ROI",
+			Point( eyebrowLeftROI.x, eyebrowLeftROI.y )
+		);
+#endif
 
 		Mat imgEyebrows		( rgb_planes[0], eyesbrowsROI ),
 			imgEyebrowLeft	( rgb_planes[0], eyebrowLeftROI ),

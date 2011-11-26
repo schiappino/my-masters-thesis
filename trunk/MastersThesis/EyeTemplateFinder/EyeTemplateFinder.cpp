@@ -16,7 +16,10 @@ using namespace cv;
 const string classifierFileNameFace = "../data/cascades/haarcascade_frontalface_alt.xml",
 	classifierFileNameEye = "../data/cascades/haarcascade_eye.xml";
 
+const string EXT_TEMPL_FNAME = "Eye mean template.png";
+
 const double K_EXP_OPERATOR = 0.0217304452751310829264530948549876073716129212732431841605;
+const int TEMPLATE_SIZE = 20;
 
 bool loadFileListFromFile( const string fileName, vector <string>& list )
 {
@@ -135,12 +138,46 @@ void extractEyesFromImages( const string list )
 			 << ((double)(currImg + 1)/(double)imgCnt) * 100 << " %";
 	}
 }
-int main()
+void findMeanTemplate( const string list )
+{
+	const string wndNameSrc = "Source",
+				 wndNameTmpl = "Template";
+
+	namedWindow( wndNameSrc, CV_GUI_NORMAL );
+	namedWindow( wndNameTmpl, CV_GUI_NORMAL );
+
+	vector <string> listOfImages;
+	bool fileListLoaded = loadFileListFromFile( list, listOfImages );
+	if( !fileListLoaded ) { cerr << "--(!) There has been an error while loding file list" << endl; return; }
+
+	Mat imsrc, imres;
+	Mat imtmpl ( TEMPLATE_SIZE, TEMPLATE_SIZE, CV_8U, Scalar::all(0) );
+	
+
+
+	int tmplCnt = listOfImages.size();
+	double weight = 1.0/tmplCnt;
+	for( int i = 0; i < tmplCnt; ++i )
+	{
+		imsrc = imread( listOfImages[i], CV_LOAD_IMAGE_GRAYSCALE );
+		resize( imsrc, imres, Size( TEMPLATE_SIZE, TEMPLATE_SIZE ), 0, 0, CV_INTER_AREA );
+
+		imshow( wndNameSrc, imsrc );
+
+  		addWeighted( imtmpl, 1.0, imres, weight, 0, imtmpl );
+
+		imshow( wndNameTmpl, imtmpl );
+		cout << "\r >>> Progress " << ((double)i/(double)(tmplCnt+1)); 
+	}
+	imwrite( EXT_TEMPL_FNAME, imtmpl );
+};
+int main( int argc, char** argv )
 {
 	const string imFileList = "../data/facedb/imm/im_filelist(frontal).txt";
+	const string pupilImages = "../data/images/PupilsPatternsExtractedFromIMM/list.txt";
 
-	extractEyesFromImages( imFileList );
-
+	//extractEyesFromImages( imFileList );
+	findMeanTemplate( pupilImages );
 	waitKey();
 	return 0;
 }

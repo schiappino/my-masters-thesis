@@ -74,7 +74,6 @@ void DetectMouth()
 		Mat imgMouthSatBlurred;
 		int bilatValSat = 12; // Bilateral filter value for saturation channel
 		bilateralFilter( imgMouthSat, imgMouthSatBlurred, bilatValSat, bilatValSat*2, bilatValSat/2 );
-
 		
 		// Set the mouth threshold to the experimentally found value
 		Scalar _meanSatLevel = mean( imgMouthSatBlurred );
@@ -82,7 +81,17 @@ void DetectMouth()
 		Mat imgMouthSatThr;
 		threshold( imgMouthSatBlurred, imgMouthSatThr, mouthSatThr, 255, CV_THRESH_BINARY );
 
+		// Preprocess mouth grayscale image
+		Mat imgMouthGrayBlur;
+		GaussianBlur( imgMouthGray, imgMouthGrayBlur, Size(5,5), 0 );
+		imshow( "imgMouthGrayBlur", imgMouthGrayBlur );
 
+		Scalar _meanGrayLevel = mean( imgMouthGrayBlur );
+		double mouthGrayThr = 0.25 * _meanGrayLevel.val[0];
+		cout << ">> Grayscale mean value: " << mouthGrayThr << endl;
+		Mat imgMouthGrayThr;
+		threshold( imgMouthGrayBlur, imgMouthGrayThr, mouthGrayThr, 255, CV_THRESH_BINARY );
+		imshow( wndNameMouth, imgMouthGrayThr );
 		
 		
 		// Use Shi-Tomasi corner detector
@@ -92,20 +101,35 @@ void DetectMouth()
 
 		RNG rng(startTime());
 		cornerDetector( imgMouthSatThr, cornersCandidatesSat );
+		cornerDetector( imgMouthGrayThr, cornersCandidatesGray );
 
+		// Find best corner candidates from saturation channel image
 		Point2f leftCorner, rightCorner;
 		getBestMouthCornerCadidates( leftCorner, rightCorner, cornersCandidatesSat );
+
+		// Find best corner candidates from grayscale image
+		Point2f leftCornGray, rightCornGray;
+		getBestMouthCornerCadidates( leftCornGray, rightCornGray, cornersCandidatesGray );
 
 		for( int i = 0; i < cornersCandidatesSat.size(); i++ )
 		{
 			circle( imgMouthCornersSat, cornersCandidatesSat[i], 4, 
 					Scalar(rng.uniform(0,255), rng.uniform(0,255), rng.uniform(0,255)), -1, 8, 0 ); 
 		}
+
+		// Draw detected corner points
 		Mat imgProcessedMouthCorners ( imgProcessed, foundMouthROI );
+		// from Saturation channel image
 		circle( imgProcessedMouthCorners, leftCorner, 4, CV_RGB(0,0,255), -1, 8, 0 ); 
 		circle( imgProcessedMouthCorners, rightCorner, 4, CV_RGB(0,0,255), -1, 8, 0 ); 
+		// from grayscale image
+		circle( imgProcessedMouthCorners, leftCornGray, 4, CV_RGB(255,0,0), -1, 8, 0 ); 
+		circle( imgProcessedMouthCorners, rightCornGray, 4, CV_RGB(255,0,0), -1, 8, 0 ); 
 		imshow( wndNameCorners, imgMouthCornersSat );
 
+		// Calculate average corner position
+		leftCorner = Point2f( (leftCorner.x + leftCornGray.x)/2, (leftCorner.y + leftCornGray.y)/2 );
+		rightCorner = Point2f( (rightCorner.x + rightCornGray.x)/2, (rightCorner.y + rightCornGray.y)/2 );
 
 		// Adjust corner points with respect to whole image
 		leftCorner = Point2f( leftCorner.x + foundMouthROI.x, leftCorner.y + foundMouthROI.y );
@@ -138,7 +162,7 @@ void getBestMouthCornerCadidates( Point2f& left, Point2f& right, vector <Point2f
 	size_t i;
 	float avg = 0;
 
-	if( ptsCnt < 2 )
+	if( ptsCnt <= 2 )
 		return;
 
 	// Calculate avarage y coord

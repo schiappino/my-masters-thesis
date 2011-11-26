@@ -83,33 +83,48 @@ void DetectMouth()
 
 		// Preprocess mouth grayscale image
 		Mat imgMouthGrayBlur;
-		GaussianBlur( imgMouthGray, imgMouthGrayBlur, Size(5,5), 0 );
+		GaussianBlur( imgMouthGray, imgMouthGrayBlur, Size(3,3), 0 );
 		imshow( "imgMouthGrayBlur", imgMouthGrayBlur );
+		
+		Rect leftCornerROI	= Rect (0,						 0, foundMouthROI.width/2.0, foundMouthROI.height );
+		Rect rightCornerROI = Rect (foundMouthROI.width/2.0, 0, foundMouthROI.width/2.0, foundMouthROI.height );
+		Mat imgMouthGrayBlurLeft ( imgMouthGrayBlur, leftCornerROI );
+		Mat imgMouthGrayBlurRight ( imgMouthGrayBlur, rightCornerROI );
 
-		Scalar _meanGrayLevel = mean( imgMouthGrayBlur );
-		double mouthGrayThr = 0.25 * _meanGrayLevel.val[0];
-		cout << ">> Grayscale mean value: " << mouthGrayThr << endl;
-		Mat imgMouthGrayThr;
-		threshold( imgMouthGrayBlur, imgMouthGrayThr, mouthGrayThr, 255, CV_THRESH_BINARY );
-		imshow( wndNameMouth, imgMouthGrayThr );
+		Scalar _meanGrayLevelLeft = mean( imgMouthGrayBlurLeft );
+		Scalar _meanGrayLevelRight = mean( imgMouthGrayBlurRight );
+		double threshGrayCoeff = 0.25;
+		double mouthGrayThrLeft = threshGrayCoeff * _meanGrayLevelLeft.val[0];
+		double mouthGrayThrRight = threshGrayCoeff * _meanGrayLevelRight.val[0];
+		cout << ">> Grayscale mean value left: " << mouthGrayThrLeft << endl;
+		cout << ">> Grayscale mean value right: " << mouthGrayThrRight << endl;
+		
+		Mat imgMouthGrayThrLeft, imgMouthGrayThrRight;
+		threshold( imgMouthGrayBlur, imgMouthGrayThrLeft, mouthGrayThrLeft, 255, CV_THRESH_BINARY );
+		threshold( imgMouthGrayBlur, imgMouthGrayThrRight, mouthGrayThrRight, 255, CV_THRESH_BINARY );
 		
 		
 		// Use Shi-Tomasi corner detector
-		vector <Point2f> cornersCandidatesSat, cornersCandidatesGray;
+		vector <Point2f> cornersCandidatesSat, 
+						 cornersCandidatesGrayLeft,
+						 cornersCandidatesGrayRight;
 		Mat imgMouthCornersSat, imgMouthCornersGray;
 		imgMouthCornersSat = imgMouthSatBlurred.clone();
 
 		RNG rng(startTime());
 		cornerDetector( imgMouthSatThr, cornersCandidatesSat );
-		cornerDetector( imgMouthGrayThr, cornersCandidatesGray );
+		cornerDetector( imgMouthGrayThrLeft, cornersCandidatesGrayLeft );
+		cornerDetector( imgMouthGrayThrRight, cornersCandidatesGrayRight );
 
 		// Find best corner candidates from saturation channel image
 		Point2f leftCorner, rightCorner;
-		getBestMouthCornerCadidates( leftCorner, rightCorner, cornersCandidatesSat );
+		getBestMouthCornerCandidateLeft( leftCorner, cornersCandidatesSat );
+		getBestMouthCornerCandidateRight( rightCorner, cornersCandidatesSat );
 
 		// Find best corner candidates from grayscale image
 		Point2f leftCornGray, rightCornGray;
-		getBestMouthCornerCadidates( leftCornGray, rightCornGray, cornersCandidatesGray );
+		getBestMouthCornerCandidateLeft( leftCornGray, cornersCandidatesGrayLeft );
+		getBestMouthCornerCandidateRight( rightCornGray, cornersCandidatesGrayRight );
 
 		for( int i = 0; i < cornersCandidatesSat.size(); i++ )
 		{
@@ -156,7 +171,42 @@ void cornerDetector( Mat img, vector<Point2f>& corners )
 						 Mat(),
 						 3);
 };
-void getBestMouthCornerCadidates( Point2f& left, Point2f& right, vector <Point2f>& candidates )
+void getBestMouthCornerCandidateLeft( Point2f& left, vector <Point2f>& candidates )
+{
+	size_t ptsCnt = candidates.size();
+	size_t i;
+	float avg = 0;
+
+	if( ptsCnt <= 1 )
+		return;
+
+	// Calculate avarage y coord
+	for( i = 0; i < ptsCnt; ++i )	
+		avg += candidates[i].y;
+
+	float tolerance = stdev_vertical( candidates );
+
+	avg /= ptsCnt;
+	float avgUp = avg + tolerance;
+	float avgDown = avg - tolerance;
+
+	float min = numeric_limits<float>::max();
+	size_t leftIdx;
+	for( i = 0; i < ptsCnt; ++i )
+	{
+		if( candidates[i].x < min )
+		{
+			// Look for left corner
+			if( candidates[i].y <= avgUp && candidates[i].y >= avgDown )
+			{
+				min = candidates[i].x;
+				leftIdx = i;
+			}
+		}
+	}
+	left = candidates[leftIdx];
+};
+void getBestMouthCornerCandidateRight( Point2f& right, vector <Point2f>& candidates )
 {
 	size_t ptsCnt = candidates.size();
 	size_t i;
@@ -175,20 +225,10 @@ void getBestMouthCornerCadidates( Point2f& left, Point2f& right, vector <Point2f
 	float avgUp = avg + tolerance;
 	float avgDown = avg - tolerance;
 
-	float min = numeric_limits<float>::max();
 	float max = 0;
-	size_t leftIdx, rightIdx;
+	size_t rightIdx;
 	for( i = 0; i < ptsCnt; ++i )
 	{
-		if( candidates[i].x < min )
-		{
-			// Look for left corner
-			if( candidates[i].y < avgUp && candidates[i].y > avgDown )
-			{
-				min = candidates[i].x;
-				leftIdx = i;
-			}
-		}
 		if( candidates[i].x > max )
 		{
 			// Look for right corner
@@ -199,7 +239,6 @@ void getBestMouthCornerCadidates( Point2f& left, Point2f& right, vector <Point2f
 			}
 		}
 	}
-	left = candidates[leftIdx];
 	right = candidates[rightIdx];
 };
 double stdev_vertical( vector <Point2f>& points )
@@ -323,3 +362,5 @@ bool saveMouthCornPosValidationData( FacialFeaturesValidation& features )
 	}
 	return true;
 }
+
+

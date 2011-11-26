@@ -4,7 +4,8 @@
 
 void DetectMouth(void);
 void cornerDetector( Mat img, vector<Point2f>& corners );
-void getBestMouthCornerCadidates( Point2f& left, Point2f& righ, vector <Point2f>& candidates );
+void getBestMouthCornerCandidateLeft( Point2f& left, vector <Point2f>& candidates );
+void getBestMouthCornerCandidateRight( Point2f& right, vector <Point2f>& candidates );
 double stdev_vertical( vector <Point2f>& points );
 void DrawGroundTruthMouthConerPos( FacialFeaturesValidation& features );
 double getMouthDist( FacialFeaturesValidation& features );

@@ -15,11 +15,11 @@ void DetectEyes()
 		Rect eyesROI	 = Rect( faces[0].x,							(int)(faces[0].y + 0.2*faces[0].height), 
 								 faces[0].width,						(int)(0.4*faces[0].height) );
 
-		Rect eyeLeftROI	 = Rect( (int)(faces[0].x + 0.1*faces[0].width),(int)(faces[0].y + 0.2*faces[0].height), 
-								 (int)(0.4*faces[0].width),				(int)(0.4*faces[0].height) );
+		Rect eyeLeftROI	 = Rect( (int)(faces[0].x + 0.1*faces[0].width),(int)(faces[0].y + 0.3*faces[0].height), 
+								 (int)(0.4*faces[0].width),				(int)(0.3*faces[0].height) );
 
-		Rect eyeRightROI = Rect( (int)(faces[0].x + 0.5*faces[0].width),(int)(faces[0].y + 0.2*faces[0].height), 
-								 (int)(0.4*faces[0].width),				(int)(0.4*faces[0].height) );
+		Rect eyeRightROI = Rect( (int)(faces[0].x + 0.5*faces[0].width),(int)(faces[0].y + 0.3*faces[0].height), 
+								 (int)(0.4*faces[0].width),				(int)(0.3*faces[0].height) );
 		
 		// Normalize histogram to improve all shit
 		Mat imgGrayEyes ( imgGray, eyesROI );

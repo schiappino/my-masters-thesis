@@ -71,12 +71,16 @@ void DetectMouth()
 		Mat imgMouthSat( hls_planes[2], foundMouthROI );
 		Mat imgMouthGray( imgGray,		foundMouthROI );
 
-		Mat imgMouthSatBlurred, imgMouthGrayBlurred;
-		bilateralFilter( imgMouthSat, imgMouthSatBlurred, bilatBlurVal, bilatBlurVal*2, bilatBlurVal/2 );
-		bilateralFilter( imgMouthGray, imgMouthGrayBlurred, bilatBlurVal, bilatBlurVal*2, bilatBlurVal/2 );
-		imshow( wndNameBlur, imgMouthSatBlurred );
-		imshow( "imgMouthGrayBlurred", imgMouthGrayBlurred );
+		Mat imgMouthSatBlurred;
+		int bilatValSat = 12; // Bilateral filter value for saturation channel
+		bilateralFilter( imgMouthSat, imgMouthSatBlurred, bilatValSat, bilatValSat*2, bilatValSat/2 );
 
+		
+		// Set the mouth threshold to the experimentally found value
+		Scalar _meanSatLevel = mean( imgMouthSatBlurred );
+		double mouthSatThr = 1.2 * _meanSatLevel.val[0];
+		Mat imgMouthSatThr;
+		threshold( imgMouthSatBlurred, imgMouthSatThr, mouthSatThr, 255, CV_THRESH_BINARY );
 
 
 		
@@ -85,25 +89,22 @@ void DetectMouth()
 		vector <Point2f> cornersCandidatesSat, cornersCandidatesGray;
 		Mat imgMouthCornersSat, imgMouthCornersGray;
 		imgMouthCornersSat = imgMouthSatBlurred.clone();
-		imgMouthCornersGray = imgMouthGrayBlurred.clone();
 
 		RNG rng(startTime());
-		//cornerDetector( imgMouthSatBlurred, cornersCandidatesSat );
-		cornerDetector( imgMouthGrayBlurred, cornersCandidatesGray );
+		cornerDetector( imgMouthSatThr, cornersCandidatesSat );
 
 		Point2f leftCorner, rightCorner;
-		//getBestMouthCornerCadidates( leftCorner, rightCorner, cornersCandidatesSat );
-		getBestMouthCornerCadidates( leftCorner, rightCorner, cornersCandidatesGray );
+		getBestMouthCornerCadidates( leftCorner, rightCorner, cornersCandidatesSat );
 
-		for( int i = 0; i < cornersCandidatesGray.size(); i++ )
+		for( int i = 0; i < cornersCandidatesSat.size(); i++ )
 		{
-			circle( imgMouthCornersGray, cornersCandidatesGray[i], 4, 
+			circle( imgMouthCornersSat, cornersCandidatesSat[i], 4, 
 					Scalar(rng.uniform(0,255), rng.uniform(0,255), rng.uniform(0,255)), -1, 8, 0 ); 
 		}
 		Mat imgProcessedMouthCorners ( imgProcessed, foundMouthROI );
 		circle( imgProcessedMouthCorners, leftCorner, 4, CV_RGB(0,0,255), -1, 8, 0 ); 
 		circle( imgProcessedMouthCorners, rightCorner, 4, CV_RGB(0,0,255), -1, 8, 0 ); 
-		imshow( wndNameCorners, imgMouthCornersGray );
+		imshow( wndNameCorners, imgMouthCornersSat );
 
 
 		// Adjust corner points with respect to whole image
@@ -253,7 +254,7 @@ void mouthCornersPositionsMetric( Point2f& left, Point2f& right, FacialFeaturesV
 	features.mouth.leftCorner_det.at( imIt )	= left;
 	features.mouth.leftCorner_err.at( imIt )	= leftCorner_err;
 
-	cout << "MOuth validation\t\tMCD " << setw(4) << interCornerDist
+	cout << "Mouth validation\tMCD " << setw(4) << interCornerDist
 		 << "\tLeft " << setiosflags(ios::basefield) << setiosflags(ios::fixed) << setprecision(1)
 		 << setw(4) << leftCorner_err << "%"
 		 << "\tRight" << setiosflags(ios::basefield) << setiosflags(ios::fixed) << setprecision(1)

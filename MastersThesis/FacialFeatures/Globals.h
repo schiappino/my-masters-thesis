@@ -201,11 +201,14 @@ struct FacialFeaturesValidation
 
 	struct Mouth
 	{
-		vector <Point> leftCorner,
-					   rightCorner,
-					   leftCorner_err,
-					   rightCorner_err;
-		int size;
+		vector <Point> leftCorner,		// Left mouth corner coordinates from GT file
+					   rightCorner,		// Right mouth corner coordinates from GT file
+					   leftCorner_det,	// Detected left mouth corner coordinates from GT file
+					   rightCorner_det;	// Detected right mouth corner coordinates from GT file
+		vector <double>leftCorner_err,	// Detected left mouth corner error
+					   rightCorner_err;	// Detected right mouth corner error
+		vector <double> MCD;			// Mouth corners distance from GT file
+		int size;						// number of items
 	} mouth;
 
 	struct Eyebrows

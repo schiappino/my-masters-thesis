@@ -1,4 +1,5 @@
 #include "Globals.h"
+#include "GUI.h"
 #include "FacialFeatures.h"
 
 void DetectEyebrows(void);

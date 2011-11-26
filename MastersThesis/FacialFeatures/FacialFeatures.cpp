@@ -19,8 +19,10 @@ const char* cascadeFNameMouth           = "../data/cascades/haarcascade_mcs_mout
 // ********************************** IMAGE FILES *******************************************
 const char* IMMFaceDBFile				= "../data/facedb/imm/im_filelist(frontal).txt";
 const char* ColorFeretDBFile			= "../data/facedb/color feret/filelist.txt";
-extern const char* ColorFeretDBFile_fa	= "../data/facedb/color feret/faces list - fa pose.txt";
-const char* eyeTemplateFile             = "../data/images/eye_template4.bmp";
+const char* ColorFeretDBFile_fa			= "../data/facedb/color feret/faces list - fa pose.txt";
+const char* eyeTemplateFile             = "../data/images/Eye mean template.png";
+//const char* eyeTemplateFile             = "../data/images/eye_template4.bmp";
+const char* AverageFaces				= "../data/facedb/average/list.txt";
 
 // *********************************** VIDEO FILES ******************************************
 const char* VideoSequences              = "../data/video sequences/filelist.txt";
@@ -359,12 +361,13 @@ void ProcessAlgorithm()
 	imgSrc.copyTo( imgProcessed );
 
 	// Convert image to grayscale and HLS colour space
-	cvtColor( imgSrc, imgGray, CV_RGB2GRAY );
-	cvtColor( imgSrc, imgHLS, CV_RGB2HLS_FULL );
+	cvtColor( imgSrc, imgGray, CV_BGR2GRAY );
+	cvtColor( imgSrc, imgHLS, CV_BGR2HLS_FULL );
 
 	// Split multichannel images into separate planes
 	split( imgSrc, rgb_planes );
-	split( imgSrc, hls_planes );
+	split( imgHLS, hls_planes );
+	imshow( "hue channel", hls_planes[0] );
 
 	face_exec_time = startTime();
 	bool isFace = DetectFaces();
@@ -379,7 +382,7 @@ void ProcessAlgorithm()
 		cout << "eyes detect\t\t" << (int)eyes_exec_time << " ms" << endl;
 
 		mouth_exec_time = startTime();
-		//DetectMouth();
+		DetectMouth();
 		calcExecTime( &mouth_exec_time );
 		cout << "mouth detect\t\t" << (int)mouth_exec_time << " ms" << endl;
 		
@@ -440,6 +443,7 @@ int main(int argc, char** argv )
 	// Save validation data to the CSV file
 	#ifdef VALIDATION
 	saveEyePosValidationData( featuresIMM );
+	saveMouthCornPosValidationData( featuresIMM );
 	#endif
 
 	ExitNicely(0);

@@ -66,38 +66,44 @@ void DetectMouth()
 			(int) (1.4*mouths[0].width), (int) (1.4*mouths[0].height)
 		);
 
-		Mat imgMouthHue( hls_planes[2], foundMouthROI );
-		Mat imgMouthThresh ( imgMouthHue.size(), imgMouthHue.type() );
-		Mat imgMouthBlurred;
-		bilateralFilter( imgMouthHue, imgMouthBlurred, bilatBlurVal, bilatBlurVal*2, bilatBlurVal/2 );
-		imshow( wndNameBlur, imgMouthBlurred );
-		mouthHueAvg = mean( imgMouthHue );
-		imshow( "Mouth ROI (hue)", imgMouthHue );
+		// Get Hue, Saturation and Greyscale images of found mouth region
+		Mat imgMouthHue( hls_planes[0], foundMouthROI );
+		Mat imgMouthSat( hls_planes[2], foundMouthROI );
+		Mat imgMouthGray( imgGray,		foundMouthROI );
 
-		mouthThreshold = (int)mouthHueAvg.val[0];
-		threshold( imgMouthBlurred, imgMouthThresh, (double) mouthThreshold, 255, THRESH_BINARY_INV );
-		imshow( wndNameMouth, imgMouthThresh );
+		Mat imgMouthSatBlurred, imgMouthGrayBlurred;
+		bilateralFilter( imgMouthSat, imgMouthSatBlurred, bilatBlurVal, bilatBlurVal*2, bilatBlurVal/2 );
+		bilateralFilter( imgMouthGray, imgMouthGrayBlurred, bilatBlurVal, bilatBlurVal*2, bilatBlurVal/2 );
+		imshow( wndNameBlur, imgMouthSatBlurred );
+		imshow( "imgMouthGrayBlurred", imgMouthGrayBlurred );
 
-		// User Shi-Tomasi corner detector
-		vector <Point2f> cornersCandidates;
-		Mat imgMouthCorners;
-		imgMouthCorners = imgMouthBlurred.clone();
+
+
+		
+		
+		// Use Shi-Tomasi corner detector
+		vector <Point2f> cornersCandidatesSat, cornersCandidatesGray;
+		Mat imgMouthCornersSat, imgMouthCornersGray;
+		imgMouthCornersSat = imgMouthSatBlurred.clone();
+		imgMouthCornersGray = imgMouthGrayBlurred.clone();
 
 		RNG rng(startTime());
-		cornerDetector( imgMouthBlurred, cornersCandidates );
+		//cornerDetector( imgMouthSatBlurred, cornersCandidatesSat );
+		cornerDetector( imgMouthGrayBlurred, cornersCandidatesGray );
 
 		Point2f leftCorner, rightCorner;
-		getBestMouthCornerCadidates( leftCorner, rightCorner, cornersCandidates );
+		//getBestMouthCornerCadidates( leftCorner, rightCorner, cornersCandidatesSat );
+		getBestMouthCornerCadidates( leftCorner, rightCorner, cornersCandidatesGray );
 
-		for( int i = 0; i < cornersCandidates.size(); i++ )
+		for( int i = 0; i < cornersCandidatesGray.size(); i++ )
 		{
-			circle( imgMouthCorners, cornersCandidates[i], 4, 
-			Scalar(rng.uniform(0,255), rng.uniform(0,255), rng.uniform(0,255)), -1, 8, 0 ); 
+			circle( imgMouthCornersGray, cornersCandidatesGray[i], 4, 
+					Scalar(rng.uniform(0,255), rng.uniform(0,255), rng.uniform(0,255)), -1, 8, 0 ); 
 		}
 		Mat imgProcessedMouthCorners ( imgProcessed, foundMouthROI );
 		circle( imgProcessedMouthCorners, leftCorner, 4, CV_RGB(0,0,255), -1, 8, 0 ); 
 		circle( imgProcessedMouthCorners, rightCorner, 4, CV_RGB(0,0,255), -1, 8, 0 ); 
-		imshow( wndNameCorners, imgMouthCorners );
+		imshow( wndNameCorners, imgMouthCornersGray );
 
 
 		// Adjust corner points with respect to whole image

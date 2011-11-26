@@ -17,7 +17,8 @@ const char* cascadeFNameFace            = "../data/cascades/haarcascade_frontalf
 const char* cascadeFNameMouth           = "../data/cascades/haarcascade_mcs_mouth.xml";
 
 // ********************************** IMAGE FILES *******************************************
-const char* IMMFaceDBFile				= "../data/facedb/imm/im_filelist(frontal).txt";
+const char* IMMFaceDBFile				= "../data/facedb/imm/im_list(1-2-5pose).txt";
+//const char* IMMFaceDBFile				= "../data/facedb/imm/im_filelist(frontal).txt";
 const char* ColorFeretDBFile			= "../data/facedb/color feret/filelist.txt";
 const char* ColorFeretDBFile_fa			= "../data/facedb/color feret/faces list - fa pose.txt";
 const char* eyeTemplateFile             = "../data/images/Eye mean template.png";
@@ -31,7 +32,8 @@ const char* VideoSequence1              = "../data/video sequences/VIDEO0020.3gp
 // ******************************** GROUND TRUTH FILES **************************************
 const string groundTruthsFeret			= "../data/facedb/ground truths/name_value/gt list - fa pose.txt";
 const string groundTruthsBioID			= "";
-const string groundTruthsIMM			= "../data/facedb/imm/gt_filelist(frontal).txt";
+const string groundTruthsIMM			= "../data/facedb/imm/gt_list(1-2-5pose).txt";
+//const string groundTruthsIMM			= "../data/facedb/imm/gt_filelist(frontal).txt";
 
 // ****************************** GLOBALS ***************************************************
 const int PROGRAM_MODE = 1; 	// PROGRAM_MODE = 1 work on images
@@ -367,7 +369,7 @@ void ProcessAlgorithm()
 	// Split multichannel images into separate planes
 	split( imgSrc, rgb_planes );
 	split( imgHLS, hls_planes );
-	imshow( "hue channel", hls_planes[0] );
+	//imshow( "hue channel", hls_planes[0] );
 
 	face_exec_time = startTime();
 	bool isFace = DetectFaces();
@@ -377,7 +379,7 @@ void ProcessAlgorithm()
 	if( isFace )
 	{
 		eyes_exec_time = startTime();
-		//DetectEyes();
+		DetectEyes();
 		calcExecTime( &eyes_exec_time );
 		cout << "eyes detect\t\t" << (int)eyes_exec_time << " ms" << endl;
 

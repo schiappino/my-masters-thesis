@@ -75,7 +75,9 @@ void getGroundTruthsIMM( FacialFeaturesValidation& features, const string files 
 	{ features.mouth.size = features.mouth.leftCorner.size();	}
 	else { cerr << "IMM ground truth parser: number of left & right mouth corners does not match" << endl; };
 };
-void getGroundTruthsBioID( FacialFeaturesValidation& features, const string files ){};
+void getGroundTruthsBioID( FacialFeaturesValidation& features, const string files )
+{
+};
 void getGroundTruthsColorFeret( FacialFeaturesValidation& features, const string files )
 {
 	const string RIGHT_EYE_PARAM_NAME = "left_eye_coordinates=",

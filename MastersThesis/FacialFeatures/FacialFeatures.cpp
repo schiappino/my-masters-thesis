@@ -377,7 +377,7 @@ void ProcessAlgorithm()
 	if( isFace )
 	{
 		eyes_exec_time = startTime();
-		DetectEyes();
+		//DetectEyes();
 		calcExecTime( &eyes_exec_time );
 		cout << "eyes detect\t\t" << (int)eyes_exec_time << " ms" << endl;
 

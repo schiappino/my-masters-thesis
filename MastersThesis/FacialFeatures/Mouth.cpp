@@ -143,12 +143,12 @@ void DetectMouth()
 		imshow( wndNameCorners, imgMouthCornersSat );
 
 		// Calculate average corner position
-		if( mouthSatThr > 0 ) // mouthSatThr is 0 when image is grayscale thus these results are ommited
+		if( mouthSatThr > 0 ) // combine results from grayscale and saturation channels
 		{
 			leftCorner = Point2f( (leftCorner.x + leftCornGray.x)/2, (leftCorner.y + leftCornGray.y)/2 );
 			rightCorner = Point2f( (rightCorner.x + rightCornGray.x)/2, (rightCorner.y + rightCornGray.y)/2 );
 		}
-		else 
+		else // mouthSatThr is 0 so copy the results from grayscale search
 		{
 			leftCorner = leftCornGray;
 			rightCorner = rightCornGray;
@@ -370,5 +370,3 @@ bool saveMouthCornPosValidationData( FacialFeaturesValidation& features )
 	}
 	return true;
 }
-
-

@@ -21,6 +21,7 @@ const char* IMMFaceDBFile				= "../data/facedb/imm/im_list(1-2-5pose).txt";
 //const char* IMMFaceDBFile				= "../data/facedb/imm/im_filelist(frontal).txt";
 const char* ColorFeretDBFile			= "../data/facedb/color feret/filelist.txt";
 const char* ColorFeretDBFile_fa			= "../data/facedb/color feret/faces list - fa pose.txt";
+const char* BioIDDbFile					= "../data/facedb/BioID/im_list.txt";
 const char* eyeTemplateFile             = "../data/images/Eye mean template.png";
 //const char* eyeTemplateFile             = "../data/images/eye_template4.bmp";
 const char* AverageFaces				= "../data/facedb/average/list.txt";
@@ -31,7 +32,7 @@ const char* VideoSequence1              = "../data/video sequences/VIDEO0020.3gp
 
 // ******************************** GROUND TRUTH FILES **************************************
 const string groundTruthsFeret			= "../data/facedb/ground truths/name_value/gt list - fa pose.txt";
-const string groundTruthsBioID			= "";
+const string groundTruthsBioID			= "../data/facedb/BioID/gt_list.txt";
 const string groundTruthsIMM			= "../data/facedb/imm/gt_list(1-2-5pose).txt";
 //const string groundTruthsIMM			= "../data/facedb/imm/gt_filelist(frontal).txt";
 
@@ -214,7 +215,7 @@ int Init()
 	imgFileList.reserve( COLOR_FERET_DB_SIZE );
 
 	// Load list of images to container
-	loadFileList( IMMFaceDBFile, imgFileList );
+	loadFileList( BioIDDbFile, imgFileList );
 
 	// Initialize file list iterator 
 	imIt = 0;
@@ -290,7 +291,10 @@ int Init()
 	//{ cerr << "--(!) Number of ground truth data in not equal" << endl; }
 
 	// IMM database
-	getGroundTruthsData( featuresIMM, groundTruthsIMM, FaceDbFlags::IMM );
+	//getGroundTruthsData( featuresIMM, groundTruthsIMM, FaceDbFlags::IMM );
+
+	// BioID database
+	getGroundTruthsData( featuresBioID, groundTruthsBioID, FaceDbFlags::BioID );
 	#endif
 
 	return 0;
@@ -444,8 +448,8 @@ int main(int argc, char** argv )
 	}
 	// Save validation data to the CSV file
 	#ifdef VALIDATION
-	saveEyePosValidationData( featuresIMM );
-	saveMouthCornPosValidationData( featuresIMM );
+	saveEyePosValidationData( featuresBioID );
+	saveMouthCornPosValidationData( featuresBioID );
 	#endif
 
 	ExitNicely(0);

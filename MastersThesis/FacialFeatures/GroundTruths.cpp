@@ -77,6 +77,74 @@ void getGroundTruthsIMM( FacialFeaturesValidation& features, const string files 
 };
 void getGroundTruthsBioID( FacialFeaturesValidation& features, const string files )
 {
+	vector <string> fileList;
+	ifstream file;
+
+	bool isFileListLoaded = loadFileList( files.c_str(), fileList );
+	if( !isFileListLoaded ) { cerr << "Cannot open input file list: " << files << endl; }
+
+	Point tmp1, tmp2, feature_point;
+	for( size_t i = 0; i < fileList.size(); ++i )
+	{
+		// Left eye coordinates
+		feature_point = getPointFromPtsFile( fileList[i], BioIDAnnotationPoints::LEFT_EYE_CENTR );
+		features.eyes.left.push_back( feature_point );
+
+		// Right eye coordinates
+		feature_point = getPointFromPtsFile( fileList[i], BioIDAnnotationPoints::RIGHT_EYE_CENTR );
+		features.eyes.right.push_back( feature_point );
+
+		// Left mouth corner coordinates
+		feature_point = getPointFromPtsFile( fileList[i], BioIDAnnotationPoints::LEFT_MOUTH_COR );
+		features.mouth.leftCorner.push_back( feature_point );
+
+		// Right mouth corner coordinates
+		feature_point = getPointFromPtsFile( fileList[i], BioIDAnnotationPoints::RIGHT_MOUTH_COR );
+		features.mouth.rightCorner.push_back( feature_point );
+
+		// Left eyebrow centre point coordinates
+		tmp1 = getPointFromPtsFile( fileList[i], BioIDAnnotationPoints::LEFT_EYEBROW_LEFT );
+		tmp1 = getPointFromPtsFile( fileList[i], BioIDAnnotationPoints::LEFT_EYEBROW_RIGHT );
+		// assume that inner point is higher and treat it as centre point height
+		feature_point = Point( cvRound((tmp1.x + tmp2.x)/2.0), tmp2.y );
+		features.eyebrow.left.push_back( feature_point );
+
+		// Left eyebrow centre point coordinates
+		tmp1 = getPointFromPtsFile( fileList[i], BioIDAnnotationPoints::RIGHT_EYEBROW_LEFT );
+		tmp1 = getPointFromPtsFile( fileList[i], BioIDAnnotationPoints::RIGHT_EYEBROW_RIGHT );
+		// assume that inner point is higher and treat it as centre point height
+		feature_point = Point( cvRound((tmp1.x + tmp2.x)/2.0), tmp1.y );
+		features.eyebrow.right.push_back( feature_point );
+	}
+	// Asserts for eyes
+	if (features.eyes.left.size() == features.eyes.right.size() )
+	{ 
+		features.eyes.size = features.eyes.left.size(); 
+		features.eyes.IOD.resize( features.eyes.size );
+		features.eyes.left_det.resize( features.eyes.size );
+		features.eyes.left_err.resize( features.eyes.size );
+		features.eyes.right_det.resize( features.eyes.size );
+		features.eyes.right_err.resize( features.eyes.size );
+	}
+	// Asserts for mouth corners
+	if (features.mouth.leftCorner.size() == features.mouth.rightCorner.size() )
+	{
+		features.mouth.size = features.mouth.leftCorner.size();
+		features.mouth.MCD.resize( features.mouth.size );
+		features.mouth.leftCorner_det.resize( features.mouth.size );
+		features.mouth.leftCorner_err.resize( features.mouth.size );
+		features.mouth.rightCorner_det.resize( features.mouth.size );
+		features.mouth.rightCorner_err.resize( features.mouth.size );
+	}
+	else { cerr << "IMM ground truth parser: number of left & right eyes does not match" << endl; };
+
+	if (features.eyebrow.left.size() == features.eyebrow.right.size() )
+	{ features.eyebrow.size = features.eyebrow.left.size();	}
+	else { cerr << "IMM ground truth parser: number of left & right eyebrows does not match" << endl; };
+
+	if (features.mouth.leftCorner.size() == features.mouth.rightCorner.size() )
+	{ features.mouth.size = features.mouth.leftCorner.size();	}
+	else { cerr << "IMM ground truth parser: number of left & right mouth corners does not match" << endl; };
 };
 void getGroundTruthsColorFeret( FacialFeaturesValidation& features, const string files )
 {
@@ -171,7 +239,7 @@ void getGroundTruthsColorFeret( FacialFeaturesValidation& features, const string
 	features.eyes.right_err.resize( features.eyes.size );
 };
 
-// Low level parsing function for IMM db ASF files
+// Low level parsing functions
 Point getPointFromASFFile( const string file, int point_no )
 {
 	ifstream gt;
@@ -195,4 +263,23 @@ Point getPointFromASFFile( const string file, int point_no )
 	}
 	else
 		return Point(-1,-1);
+}
+Point getPointFromPtsFile( const string file, int point_no )
+{
+	ifstream gt;
+	string line;
+	float x, y;
+	int line_no = 2 + point_no;
+
+	gt.open( file, ifstream::in );
+
+	for( int i = 0; (i < line_no) && gt.good(); ++i )
+		getline( gt, line );
+
+	gt >> x;
+	gt >> y;
+
+	gt.close();
+
+	return Point( cvRound(x), cvRound(y) );
 }

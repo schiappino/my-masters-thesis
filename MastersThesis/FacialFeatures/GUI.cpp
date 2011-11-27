@@ -126,8 +126,8 @@ void displayStats()
 	// Display ground truth data 
 	#ifdef VALIDATION
 	sprintf_s( text, 255, "Eye L:%dx%d R:%dx%d", 
-		featuresIMM.eyes.left.at(imIt).x, featuresIMM.eyes.left.at(imIt).y, 
-		featuresIMM.eyes.right.at(imIt).x, featuresIMM.eyes.right.at(imIt).y);
+		featuresBioID.eyes.left.at(imIt).x, featuresBioID.eyes.left.at(imIt).y, 
+		featuresBioID.eyes.right.at(imIt).x, featuresBioID.eyes.right.at(imIt).y);
 	putTextWithShadow( imgProcessed, text, Point(5, 135));
 	#endif
 }

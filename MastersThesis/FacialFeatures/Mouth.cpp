@@ -143,14 +143,22 @@ void DetectMouth()
 		imshow( wndNameCorners, imgMouthCornersSat );
 
 		// Calculate average corner position
-		leftCorner = Point2f( (leftCorner.x + leftCornGray.x)/2, (leftCorner.y + leftCornGray.y)/2 );
-		rightCorner = Point2f( (rightCorner.x + rightCornGray.x)/2, (rightCorner.y + rightCornGray.y)/2 );
+		if( mouthSatThr > 0 ) // mouthSatThr is 0 when image is grayscale thus these results are ommited
+		{
+			leftCorner = Point2f( (leftCorner.x + leftCornGray.x)/2, (leftCorner.y + leftCornGray.y)/2 );
+			rightCorner = Point2f( (rightCorner.x + rightCornGray.x)/2, (rightCorner.y + rightCornGray.y)/2 );
+		}
+		else 
+		{
+			leftCorner = leftCornGray;
+			rightCorner = rightCornGray;
+		}
 
 		// Adjust corner points with respect to whole image
 		leftCorner = Point2f( leftCorner.x + foundMouthROI.x, leftCorner.y + foundMouthROI.y );
 		rightCorner = Point2f( rightCorner.x + foundMouthROI.x, rightCorner.y + foundMouthROI.y );
-		mouthCornersPositionsMetric( leftCorner, rightCorner, featuresIMM );
-		DrawGroundTruthMouthConerPos( featuresIMM );
+		mouthCornersPositionsMetric( leftCorner, rightCorner, featuresBioID );
+		DrawGroundTruthMouthConerPos( featuresBioID );
 	}
 };
 void cornerDetector( Mat img, vector<Point2f>& corners )

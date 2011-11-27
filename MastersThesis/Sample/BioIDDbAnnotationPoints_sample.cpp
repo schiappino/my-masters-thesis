@@ -45,8 +45,8 @@ bool parseBioIDGroundTruthData( const string file )
 
 int main( int argc, char** argv )
 {
-	const string im_filename = "../data/facedb/bioid/bioid_1520.pgm",
-				 gt_filename = "../data/facedb/bioid/bioid_1520.pts",
+	const string im_filename = "../data/facedb/bioid/bioid_1140.pgm",
+				 gt_filename = "../data/facedb/bioid/bioid_1140a.pts",
 				 wnd_name = "IMM feature points";
 	int r = 2;
 
@@ -60,7 +60,6 @@ int main( int argc, char** argv )
 		circle( imsrc, fp[i], r, CV_RGB(0,255,0), -1 );
 		imshow( wnd_name, imsrc );
 		cout << "\r>> Point " << i+1;
-		waitKey();
 	}
 
 	waitKey();

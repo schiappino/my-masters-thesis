@@ -140,9 +140,9 @@ void DetectEyes()
 		// Validation: Draw ground truth eye centres
 		#ifdef VALIDATION
 			#ifdef GUI
-			DrawGroundTruthEyePos( featuresIMM );
+			DrawGroundTruthEyePos( featuresBioID );
 			#endif
-		eyePositionsMetric( leftEyeCoords, rightEyeCoords, featuresIMM );
+		eyePositionsMetric( leftEyeCoords, rightEyeCoords, featuresBioID );
 		#endif
 
 		#endif
@@ -283,6 +283,4 @@ bool saveEyePosValidationData( FacialFeaturesValidation& features )
 			<< features.eyes.right_err.at(i)	<< next_cell
 			<< features.eyes.left_err.at(i)		<< next_cell << endl;
 	}
-
-
 }

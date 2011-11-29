@@ -82,7 +82,7 @@ void DetectEyebrows()
 
 		offset.x = eyesbrowsROI.x + eyesbrowsROI.width*0.5;
 		blobDetector( rightEybrowSmoothedRed, eyebrowCandidates, keyPoints );
-		getBestEyebrowCadidate( leftEybrowSmoothedRed, eyebrowCandidates, keyPoints, 
+		getBestEyebrowCadidate( rightEybrowSmoothedRed, eyebrowCandidates, keyPoints, 
 			bestMatch, bestMatchCenter, EyebrowCandidateFlags::RIGHT );
 		drawEyebrow( imgProcessed, bestMatch, bestMatchCenter, offset );
 

@@ -83,7 +83,8 @@ extern vector<Mat> rgb_planes,
 			hsv_planes;
 
 
-extern int                     
+extern int        
+	selectedFaceDb,
 	counter,
 	posRes,
 	object_size,

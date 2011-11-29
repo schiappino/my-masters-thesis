@@ -140,9 +140,9 @@ void DetectEyes()
 		// Validation: Draw ground truth eye centres
 		#ifdef VALIDATION
 			#ifdef GUI
-			DrawGroundTruthEyePos( featuresBioID );
+			DrawGroundTruthEyePos( getCurrentFaceDbFatures(selectedFaceDb) );
 			#endif
-		eyePositionsMetric( leftEyeCoords, rightEyeCoords, featuresBioID );
+			eyePositionsMetric( leftEyeCoords, rightEyeCoords, getCurrentFaceDbFatures(selectedFaceDb) );
 		#endif
 
 		#endif

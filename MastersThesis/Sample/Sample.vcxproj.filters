@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BioIDDbAnnotationPoints_sample.cpp">
+    <ClCompile Include="ShiTomasi_demo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

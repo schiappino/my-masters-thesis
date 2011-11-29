@@ -19,7 +19,7 @@ const char* cascadeFNameMouth           = "../data/cascades/haarcascade_mcs_mout
 // ********************************** IMAGE FILES *******************************************
 const char* IMMFaceDBFile				= "../data/facedb/imm/im_list(1-2-5pose).txt";
 //const char* IMMFaceDBFile				= "../data/facedb/imm/im_filelist(frontal).txt";
-const char* ColorFeretDBFile			= "../data/facedb/color feret/filelist.txt";
+const char* ColorFeretDBFile			= "../data/facedb/color feret/im_list frontal pose-fa-fb close-ups.txt";
 const char* ColorFeretDBFile_fa			= "../data/facedb/color feret/faces list - fa pose.txt";
 const char* BioIDDbFile					= "../data/facedb/BioID/im_list.txt";
 const char* eyeTemplateFile             = "../data/images/Eye mean template.png";
@@ -31,7 +31,7 @@ const char* VideoSequences              = "../data/video sequences/filelist.txt"
 const char* VideoSequence1              = "../data/video sequences/VIDEO0020.3gp";
 
 // ******************************** GROUND TRUTH FILES **************************************
-const string groundTruthsFeret			= "../data/facedb/ground truths/name_value/gt list - fa pose.txt";
+const string groundTruthsFeret			= "../data/facedb/color feret/gt_list frontal pose-fa-fb close-ups.txt";
 const string groundTruthsBioID			= "../data/facedb/BioID/gt_list.txt";
 const string groundTruthsIMM			= "../data/facedb/imm/gt_list(1-2-5pose).txt";
 //const string groundTruthsIMM			= "../data/facedb/imm/gt_filelist(frontal).txt";
@@ -94,7 +94,8 @@ vector<Mat> rgb_planes,
 
 
 int                     
-        counter         = 0,
+        selectedFaceDb  = -1,
+		counter         = 0,
         posRes          = 0,
         object_size     = 0,
         face_size       = 0,
@@ -180,6 +181,26 @@ double square_distance( double a, double b )
 {
 	return sqrt( a*a + b*b );
 }
+FacialFeaturesValidation& getCurrentFaceDbFatures( int flag )
+{
+	if( flag == FaceDbFlags::IMM )
+	{
+		FacialFeaturesValidation &ffv = featuresIMM;
+		return ffv;
+	}
+	else if( flag == FaceDbFlags::BioID )
+	{
+		FacialFeaturesValidation &ffv = featuresBioID;
+		return ffv;
+	}
+	else if( flag == FaceDbFlags::COLOR_FERET )
+	{
+		FacialFeaturesValidation &ffv = featuresFeret;
+		return ffv;
+	}
+	else
+		cerr << "--(!) getCurrentFaceDbFatures: incorrect flag" << endl;
+}
 
 
 bool loadFileList( const char* fileName, vector <string>& list )
@@ -215,7 +236,7 @@ int Init()
 	imgFileList.reserve( COLOR_FERET_DB_SIZE );
 
 	// Load list of images to container
-	loadFileList( BioIDDbFile, imgFileList );
+	loadFileList( ColorFeretDBFile, imgFileList );
 
 	// Initialize file list iterator 
 	imIt = 0;
@@ -283,18 +304,17 @@ int Init()
 
 	// Load ground truth data
 	#ifdef VALIDATION
+	selectedFaceDb = FaceDbFlags::COLOR_FERET;
+
 	// Color FERET database
-	//getGroundTruthsData( featuresFeret, groundTruthsFeret, FaceDbFlags::COLOR_FERET );
-	//
-	//if( !(featuresFeret.eyes.left.size() == featuresFeret.eyes.right.size() 
-	//	&& featuresFeret.eyes.left.size() == imgFileList.size()) ) 
-	//{ cerr << "--(!) Number of ground truth data in not equal" << endl; }
+	getGroundTruthsData( featuresFeret, groundTruthsFeret, FaceDbFlags::COLOR_FERET );
+
 
 	// IMM database
 	//getGroundTruthsData( featuresIMM, groundTruthsIMM, FaceDbFlags::IMM );
 
 	// BioID database
-	getGroundTruthsData( featuresBioID, groundTruthsBioID, FaceDbFlags::BioID );
+	//getGroundTruthsData( featuresBioID, groundTruthsBioID, FaceDbFlags::BioID );
 	#endif
 
 	return 0;
@@ -388,7 +408,7 @@ void ProcessAlgorithm()
 		cout << "eyes detect\t\t" << (int)eyes_exec_time << " ms" << endl;
 
 		mouth_exec_time = startTime();
-		DetectMouth();
+		//DetectMouth();
 		calcExecTime( &mouth_exec_time );
 		cout << "mouth detect\t\t" << (int)mouth_exec_time << " ms" << endl;
 		
@@ -448,8 +468,8 @@ int main(int argc, char** argv )
 	}
 	// Save validation data to the CSV file
 	#ifdef VALIDATION
-	saveEyePosValidationData( featuresBioID );
-	saveMouthCornPosValidationData( featuresBioID );
+	saveEyePosValidationData( getCurrentFaceDbFatures(selectedFaceDb) );
+	//saveMouthCornPosValidationData( getCurrentFaceDbFatures(selectedFaceDb) );
 	#endif
 
 	ExitNicely(0);

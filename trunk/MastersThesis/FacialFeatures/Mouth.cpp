@@ -66,6 +66,14 @@ void DetectMouth()
 			(int) (1.4*mouths[0].width), (int) (1.4*mouths[0].height)
 		);
 
+		rectangle( imgProcessed, 
+				Point( foundMouthROI.x, foundMouthROI.y ),
+				Point( foundMouthROI.x + foundMouthROI.width, foundMouthROI.y + foundMouthROI.height ),
+				CV_RGB(0,0,255),
+				2
+			);
+
+
 		// Get Hue, Saturation and Greyscale images of found mouth region
 		Mat imgMouthHue( hls_planes[0], foundMouthROI );
 		Mat imgMouthSat( hls_planes[2], foundMouthROI );
@@ -84,7 +92,6 @@ void DetectMouth()
 		// Preprocess mouth grayscale image
 		Mat imgMouthGrayBlur;
 		GaussianBlur( imgMouthGray, imgMouthGrayBlur, Size(3,3), 0 );
-		imshow( "imgMouthGrayBlur", imgMouthGrayBlur );
 		
 		Rect leftCornerROI	= Rect (0,						 0, foundMouthROI.width/2.0, foundMouthROI.height );
 		Rect rightCornerROI = Rect (foundMouthROI.width/2.0, 0, foundMouthROI.width/2.0, foundMouthROI.height );
@@ -126,11 +133,14 @@ void DetectMouth()
 		getBestMouthCornerCandidateLeft( leftCornGray, cornersCandidatesGrayLeft );
 		getBestMouthCornerCandidateRight( rightCornGray, cornersCandidatesGrayRight );
 
+
+		#ifdef MOUTH_DETECT_DEBUG
 		for( int i = 0; i < cornersCandidatesSat.size(); i++ )
 		{
 			circle( imgMouthCornersSat, cornersCandidatesSat[i], 4, 
 					Scalar(rng.uniform(0,255), rng.uniform(0,255), rng.uniform(0,255)), -1, 8, 0 ); 
 		}
+		imshow( wndNameMouth, imgMouthCornersSat );
 
 		// Draw detected corner points
 		Mat imgProcessedMouthCorners ( imgProcessed, foundMouthROI );
@@ -141,6 +151,7 @@ void DetectMouth()
 		circle( imgProcessedMouthCorners, leftCornGray, 4, CV_RGB(255,0,0), -1, 8, 0 ); 
 		circle( imgProcessedMouthCorners, rightCornGray, 4, CV_RGB(255,0,0), -1, 8, 0 ); 
 		imshow( wndNameCorners, imgMouthCornersSat );
+		#endif
 
 		// Calculate average corner position
 		if( mouthSatThr > 0 ) // combine results from grayscale and saturation channels
@@ -157,8 +168,15 @@ void DetectMouth()
 		// Adjust corner points with respect to whole image
 		leftCorner = Point2f( leftCorner.x + foundMouthROI.x, leftCorner.y + foundMouthROI.y );
 		rightCorner = Point2f( rightCorner.x + foundMouthROI.x, rightCorner.y + foundMouthROI.y );
-		mouthCornersPositionsMetric( leftCorner, rightCorner, featuresBioID );
-		DrawGroundTruthMouthConerPos( featuresBioID );
+
+
+		circle( imgProcessed, leftCorner, 4, CV_RGB(0,255,0), -1, 8, 0 ); 
+		circle( imgProcessed, rightCorner, 4, CV_RGB(0,255,0), -1, 8, 0 ); 
+		
+		#ifdef VALIDATION
+		mouthCornersPositionsMetric( leftCorner, rightCorner, getCurrentFaceDbFatures(selectedFaceDb) );
+		DrawGroundTruthMouthConerPos( getCurrentFaceDbFatures(selectedFaceDb) );
+		#endif
 	}
 };
 void cornerDetector( Mat img, vector<Point2f>& corners )

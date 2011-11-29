@@ -17,7 +17,7 @@ using namespace cv;
 #define IMM_DB_SIZE	250
 
 #define FACE_DETECT_DEBUG
-#define EYE_DETECT_ROI_DEBUG
+//#define EYE_DETECT_ROI_DEBUG
 //#define MOUTH_ROI_DEBUG
 //#define EYEBROWS_ROI_DEBUG
 //#define EYES_DETECT_DEBUG
@@ -37,6 +37,7 @@ double calcExecTime( double* time );
 bool loadFileList( const char* fileName, vector <string>& list );
 string convertInt(int number);
 double square_distance( double a, double b );
+FacialFeaturesValidation& getCurrentFaceDbFatures( int flag );
 // ****************************** CORE *************************************
 void exponentialOperator( Mat src, Mat dst );
 int Init(void);
